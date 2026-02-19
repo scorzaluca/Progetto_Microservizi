@@ -1,0 +1,35 @@
+# --- Dati e Volumi (Runtime) ---
+Data_N8N/
+Data_Ollama/
+# Se hai database o grafana persistent:
+data/
+*.db
+*.sqlite
+
+# --- Segreti e Sicurezza ---
+.env
+.env.*
+! .env.example
+**/id_ed25519*
+**/ssh*
+**/*.pem
+**/*.key
+
+# --- Log e temporanei ---
+*.log
+logs/
+tmp/
+.runtime/
+
+# --- Python (se usi microservizi in Python come da template) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db

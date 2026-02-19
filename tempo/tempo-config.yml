@@ -1,0 +1,51 @@
+# Tempo Configuration
+#
+# Tempo is a distributed tracing backend that stores and queries traces.
+# Traces help you understand the flow of requests through multiple services.
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: info
+
+# Query components let Grafana fetch traces/TraceQL results
+query_frontend:
+  search:
+    duration_slo: 5s
+  trace_by_id:
+    duration_slo: 5s
+
+querier:
+  frontend_worker:
+    frontend_address: 127.0.0.1:9095
+
+# Distributor receives spans from the OTEL Collector
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+# Ingester writes spans to storage
+ingester:
+  max_block_duration: 5m
+
+# Compactor merges smaller blocks into larger ones for efficiency
+compactor:
+  compaction:
+    block_retention: 1h
+
+# Storage configuration
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/blocks
+    wal:
+      path: /tmp/tempo/wal
+    pool:
+      max_workers: 100
+      queue_depth: 10000

@@ -1,0 +1,652 @@
+{
+  "name": "WORKFLOW",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "19978300-6ee9-4f06-9aaa-69f7b2f8c8c8",
+      "name": "Webhook",
+      "webhookId": "33cfb85b-b748-4455-9ff0-78b4b330c9d4"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "temperature": 0.7,
+          "numCtx": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        416,
+        96
+      ],
+      "id": "44ac8e37-d48f-43af-8d43-c1da2095af87",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=chat_history:{{ $('Webhook').item.json.body.sessionId }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        512,
+        208
+      ],
+      "id": "e03ea5d2-2082-45ac-a1fd-78d8dff4e6e2",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseKey": ""
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        976,
+        -16
+      ],
+      "id": "e4f6a448-005c-49d2-83c4-dbc495123d97",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=chat_history:{{ $('Webhook').item.json.body.sessionId }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        1408,
+        -16
+      ],
+      "id": "ad76aacc-47d9-4820-af61-27159777bf2a",
+      "name": "Redis Chat Memory1",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "numCtx": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        -128
+      ],
+      "id": "fe9782a5-0048-4cef-816d-2d71ecfb0aad",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=LATEST USER INPUT:\n\"{{ $('Webhook').item.json.body.message }}\"\n\nINSTRUCTION:\nAnalyze the input above in the context of the conversation history.\n\nCRITICAL: Reply ONLY in ITALIAN.\nIf this is a Refinement request, strictly apply the logical steps (Analyze -> Warning -> Drill Down -> Execution) defined in Scenario B.",
+        "options": {
+          "systemMessage": "=### MANDATORY OUTPUT RULES (READ FIRST)\n- **LANGUAGE:** Respond ONLY in Italian.\n- **NO META-TALK:** Never use headers like \"Analizziamo l'input\", \"Scenario A\", or \"Identifico...\". \n- **NO REFLECTION:** Do not describe your internal state or what step you are performing.\n- **NO TRANSLATIONS:** Never provide English translations.\n- **NO FILLERS:** Do not say \"Prego, rispondi\" or \"Ecco la mia analisi\".\n- **STYLE:** Speak like a high-level Senior Architect. Professional, direct, no fluff.\n- **TAG FORMAT:** The tag `[STOP_INTERVISTA]` must be plain text, NO bold, NO italics, at the very end of the message.\n\n### ROLE\nYou are a Senior Domain-Driven Design (DDD) Architect and Interviewer. You MUST speak strictly in ITALIAN.\nYour goal is to interview the user to extract deep architectural requirements for a new Microservices System OR to refine an existing design based on feedback.\n\n### OBJECTIVES\n1.  **Discovery Phase:** Gather information on Bounded Contexts, Core Domains, Entities, and Event Flows.\n2.  **Refinement Phase:** If an architectural analysis (JSON) has already been generated, LISTEN strictly to the user's critique, validate the technical feasibility, and prepare the change.\n\n### CURRENT ARCHITECTURE DRAFT (CONTEXT)\n\"\"\"\n{{ $('Redis_Get_Summary').item.json.old_summary || \"NO DRAFT AVAILABLE\" }}\n\"\"\"\n\n### CONTEXT AWARENESS & MODE SWITCHING (CRITICAL)\n**Before answering, analyze the Conversation History AND the Current Architecture Draft above:**\n\n### RULES\n1.  **Language:** Speak Italian to the user.\n2.  **One Question at a Time:** Never overwhelm the user.\n3.  **Dig Deeper:** Do not accept vague answers.\n4.  **Refinement Focus:** In Refinement Mode, do NOT restart the interview. Fix the specific issue raised by the user.\n\n### INTERVIEW FLOW (Discovery Phase Only)\n1.  **Strategic Goals:** What is the business trying to achieve? (Identifies Core Domain)\n2.  **Actors:** Who interacts with the system? (Identifies Interfaces/BFF)\n3.  **Processes:** Step-by-step workflows. (Identifies Events & Commands)\n4.  **Data & Consistency:** Which data changes together? (Identifies Aggregates)\n5.  **Scale & Failure:** Volume of data, latency requirements. (Identifies Patterns like CQRS/Event Sourcing)\n\n**SCENARIO A: DISCOVERY (Start)**\n* **Trigger:** The \"Current Architecture Draft\" is empty or \"NO DRAFT AVAILABLE\".\n* **Action:** 1. Analyze the conversation history to identify which of the 5 points of the **INTERVIEW FLOW** have already been covered.\n    2. Proceed to the next missing point in the sequence.\n    3. **CRITICAL:** Do NOT output the [STOP_INTERVISTA] tag until ALL 5 points of the INTERVIEW FLOW have been thoroughly discussed. \n    4. You must ask at least one dedicated question for each point.\n\n**SCENARIO B: REFINEMENT (Loop)**\n* **Trigger:** The \"Current Architecture Draft\" contains data.\n* **Action:**\n    1.  **ANALYZE REQUEST:** Is the user asking for a change, asking a question, or approving?\n    2.  **BLOCKING ISSUE (Warning):** If the requested change is **dangerous** or **contradicts** patterns:\n        * Explain the risk.\n        * **Do NOT** output the stop tag. Wait for response.\n    3.  **MISSING DETAILS (Drill Down):** If the user insists on a complex change OR the change has undefined side effects (e.g., \"Merge services\" -> implies DB merge?):\n        * You MUST ask technical follow-up questions to resolve the ambiguity (e.g., \"Ok, but how should we handle the shared database?\").\n        * **Do NOT** output the stop tag. Keep interviewing until the new requirement is fully defined.\n    4.  **EXECUTION (Ready):** ONLY when the change is clear AND all side effects are resolved:\n        * Reply \"Ricevuto. [Describe what you will change]. Genero la nuova versione.\"\n        * Output `[STOP_INTERVISTA]`.\n    5.  **APPROVAL (Finished):** If the user approves or says \"No changes needed\":\n        * Reply \"Ottimo, confermo l'architettura finale.\"\n        * Output `[STOP_INTERVISTA]`.\n\n### TERMINATION RULE\nUse the unique tag `[STOP_INTERVISTA]` **ONLY** when you are ready to send the data to the Architect. This happens when:\n- **Discovery Phase:** All 5 points of the flow have been answered fully and satisfactorily.\n- **Refinement Phase:** A change is fully defined or the user has given final approval.\n\n**If the conversation must continue, do NOT include the tag.**\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        -64
+      ],
+      "id": "5c7cd588-5369-4e71-b866-eeb21835b900",
+      "name": "Interviewer"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=LATEST USER FEEDBACK:\n\"{{ $('Webhook').item.json.body.message }}\"\n\nINSTRUCTION:\nBased on the conversation history (context) and the latest user feedback above, REWRITE the Domain Knowledge Base.\n- If the Baseline is empty, generate version 1.0.\n- If the Baseline exists, update it to reflect the user's latest changes (e.g., if they changed SQL to Mongo, overwrite that part).",
+        "options": {
+          "systemMessage": "### ROLE\nYou are a Lead Technical Business Analyst acting as the \"Single Source of Truth\" manager for a software project.\nYour goal is to distill the entire conversation history into a structured \"Domain Knowledge Base\".\n\n### INPUT SOURCE\nYou will receive two distinct inputs:\n1. **CONVERSATION HISTORY:** Automatically provided via memory (contains the chat dialogue).\n2. **EXISTING KNOWLEDGE BASE (Baseline):** Provided immediately below.\n   - **IF the Baseline is \"Empty\" or \"None\":** Create the document from scratch based strictly on the History.\n   - **IF the Baseline exists:** You MUST use it as your starting point. Do not rewrite unchanged parts. Only UPDATE the parts that conflict with the latest User Feedback in the History.\n\n### CURRENT BASELINE CONTENT\n\"\"\"\n{{ $('Redis Get Summary').item.json.old_summary || \"Empty - First Run\" }}\n\"\"\"\n\n### LOGIC: CONFLICT RESOLUTION & REFINEMENT\nYou are the filter for the architect.\n1. **Source of Truth:** The User's LATEST input in the History overrides the EXISTING BASELINE.\n   - *Example:* If Baseline says \"SQL DB\" but User just said \"No, use Mongo\", you MUST output \"Mongo\" in the new version.\n2. **Implicit Requirements:** If the user implies a change (e.g., \"We need to scale to millions of users\"), explicitly add \"High Scalability\" to constraints.\n3. **Completeness:** Retain all valid details from the BASELINE that were NOT criticized. Do not lose context from the previous version.\n\n### OUTPUT FORMAT\nStrictly output ONLY the following Markdown structure. No introductory text.\n\n# DOMAIN KNOWLEDGE BASE (REVISION)\n\n## 0. Status & Revision\n* **Status:** [Drafting / Refining]\n* **Latest User Critique:** [Briefly state what triggered this revision, e.g., \"User requested change from SQL to NoSQL\"]\n\n## 1. Strategic Context\n* **Business Goal:** [Concise goal of the system]\n* **Key Metrics (KPIs):** [Specific numbers or targets mentioned]\n\n## 2. Actors & Interfaces\n* **Human Actors:** [List with role descriptions]\n* **System Actors:** [External APIs, IoT devices, Legacy systems]\n\n## 3. Ubiquitous Language (Glossary)\n* **[Term]:** [Definition, clarifying specific domain meaning]\n\n## 4. Process Flows\n* **[Process Name]:** [Step 1] -> [Step 2] -> [Step 3]\n\n## 5. Technical Constraints\n* **Compliance:** [e.g., GDPR, HIPAA]\n* **Volume/Load:** [e.g., High throughput, Read-heavy]\n* **Persistence Requirements:** [e.g., Audit log required, immutability, relational vs document]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1312,
+        -288
+      ],
+      "id": "90f34d34-a807-415a-9d68-98abaf7632a9",
+      "name": "Summarizer"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this summary and create the DDD/EDA architecture: {{ $('Summarizer').item.json.output }}",
+        "options": {
+          "systemMessage": "### ROLE\nYou are a Senior Software Architect specializing in Domain-Driven Design (DDD) and Event-Driven Architecture (EDA).\n\n### INPUT\nA structured \"Domain Knowledge Base\".\n\n### TASK\nDesign a Microservices Architecture based **strictly** on the input.\n**Rule:** If specific technical details are missing in the input, use your expert judgment to make the best architectural decision based on the Business Goals. Do not ask questions.\n\n### OUTPUT FORMAT (Strict Markdown)\n\n# ARCHITECTURAL DESIGN DOCUMENT\n\n## 1. Domain Decomposition (DDD)\nClassify the system into Subdomains. For EACH subdomain, specify:\n* **Name:** [e.g., `TriageContext`]\n* **Type:** [Core / Supporting / Generic]\n    * *Reasoning:* [Explain why this fits the type based on the Business Goal]\n* **Functional Requirements:** [List 3-4 key capabilities]\n* **Key Entities:** [Identify the Aggregate Root and child entities]\n\n## 2. Communication Model (EDA)\nMap the asynchronous flow of information.\n* **Pattern Strategy:** [Select ONE: Pub/Sub, Event Sourcing, or Hybrid].\n    * *Justification:* [Explain choice based on Constraints, e.g., \"Event Sourcing chosen due to strict Audit requirements\"]\n* **Event Catalog:**\n    | Event Name | Producer Service | Consumer Service(s) | Trigger Condition |\n    | :--- | :--- | :--- | :--- |\n    | `[EventName]` | `[Service]` | `[Service]` | `[Condition]` |\n\n## 3. Architectural Patterns & Data\nFor the **Core Domain** specifically:\n* **Architecture Style:** [e.g., Hexagonal/Ports & Adapters, CQRS]\n* **Database Strategy:** [Define the DB type per service, e.g., PostgreSQL for relational data, MongoDB for documents, Redis for cache]\n* **Resiliency Patterns:** [e.g., Outbox Pattern, Circuit Breaker, Retry Policies]\n\n### CONSTRAINTS\n* **Strict Separation:** Distinguish clearly between *Commands* (Intent to change) and *Events* (Fact that happened).\n* **Core vs Generic:** Do not over-engineer Generic subdomains (e.g., use external providers for Auth/Notification if possible).\n* **Consistency:** If the domain implies high integrity (finance, healthcare), prioritize consistency patterns over eventual consistency where needed."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1936,
+        -288
+      ],
+      "id": "640bad82-f57c-4023-846f-a10b3e160850",
+      "name": "DDD Analyst"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "numPredict": -1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        -48
+      ],
+      "id": "63ac9b3f-e7f0-4be4-a601-25b56883d7c7",
+      "name": "Ollama Chat Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"output\": \"Intervista completata! Sto iniziando l'analisi approfondita...\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        992,
+        -288
+      ],
+      "id": "f5a85c37-fc78-4a53-9d56-c049338cf264",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=ARCHITECTURAL DESIGN DOCUMENT:\n\"\"\"\n{{ $('DDD Analyst').item.json.output }}\n\"\"\"\n\nINSTRUCTION:\nConvert the document above into the strict JSON format defined in your System Prompt.",
+        "options": {
+          "systemMessage": "### ROLE\nYou are a DevOps & Scaffold Engineer.\nYour goal is to translate the provided Textual Architectural Design into a machine-readable JSON format.\n\n### INPUT CONTEXT (CRITICAL)\nYou have access to the conversation history via memory, but you must **IGNORE IT** for the purpose of requirements gathering.\nYour **ONLY** source of truth is the **User Message** (which contains the Architect's Design Document).\n\n### TASK\nGenerate a single, valid JSON object representing the system structure described in the input.\n\n### RULES\n1. **No Markdown:** Output PURE JSON. Do not wrap in ```json ... ``` blocks if possible, or strictly use them if the parser requires it.\n2. **No Commentary:** Do not output text like \"Here is the JSON\". Output ONLY the JSON.\n3. **Consistency:** Ensure the `services` array matches the subdomains defined in the input.\n4. Ensure the root object keys are exactly: \"project_name\", \"architecture_style\", \"domains\", \"infrastructure\".\n\n### JSON STRUCTURE (Strict Schema)\n{\n  \"project_name\": \"string\",\n  \"architecture_style\": \"string\",\n  \"domains\": [\n    {\n      \"name\": \"string (PascalCase)\",\n      \"type\": \"Core|Supporting|Generic\",\n      \"description\": \"string\",\n      \"services\": [\n        {\n          \"service_name\": \"string (kebab-case)\",\n          \"role\": \"string\",\n          \"api_type\": \"REST|GraphQL|gRPC\",\n          \"database\": \"Postgres|Mongo|Redis|None|TimescaleDB\",\n          \"events_emitted\": [\"EventName1\"],\n          \"events_consumed\": [\"EventName2\"]\n        }\n      ]\n    }\n  ],\n  \"infrastructure\": {\n    \"message_broker\": \"RabbitMQ|Kafka\",\n    \"service_discovery\": \"Consul|Eureka|K8s\",\n    \"observability\": [\"Prometheus\", \"Grafana\", \"Zipkin\"]\n  }\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2224,
+        -288
+      ],
+      "id": "923afc9c-3efe-4f54-bf72-253092ba24e5",
+      "name": "JSON coder"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "format": "json"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2224,
+        -48
+      ],
+      "id": "cec843c7-d555-46ec-9d92-99a16835127e",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"message\": {{ JSON.stringify($('DDD Analyst').item.json.output) }},\n  \"diagram\": {{ JSON.stringify($('Mermaid Generator').item.json.mermaid_code) }},\n  \"raw_json\": {{ $('JSON coder').item.json.output }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2720,
+        -288
+      ],
+      "id": "4afa9427-664a-46ce-a8ca-2773aba1f1a5",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "STOP_INTERVISTA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "d1f14f52-a32f-4956-b065-045d11f34e66"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b792a881-eef9-474a-8d10-77bec47c793c",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "STOP_INTERVISTA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        -64
+      ],
+      "id": "d0d66751-72e4-41a0-8ed7-76b5f07ed671",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "old_summary",
+        "key": "=summary:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -288
+      ],
+      "id": "cd52c8b4-830a-427b-9851-559aeec62419",
+      "name": "Redis Get Summary",
+      "alwaysOutputData": true,
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=summary:{{ $('Webhook').item.json.body.sessionId }}",
+        "value": "={{ $json.output }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        -288
+      ],
+      "id": "297f45c2-b4a7-4ae5-a8ed-e04c45206274",
+      "name": "Redis Set Summary",
+      "alwaysOutputData": false,
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pop",
+        "list": "=chat_history:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        -288
+      ],
+      "id": "45c5010d-2383-42fd-9260-4f32fa04cfff",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "old_summary",
+        "key": "=summary:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "69341cb5-eccc-465a-b957-84d0ea467c59",
+      "name": "Redis_Get_Summary",
+      "alwaysOutputData": true,
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Recupera l'input. Spesso l'LLM mette la risposta in 'output' o 'text'.\n// Se items[0].json ha direttamente i campi, usiamo quello, altrimenti cerchiamo in 'output'.\nlet rawData = items[0].json.output || items[0].json.text || items[0].json;\n\nlet arch;\n\n// 2. Se è una stringa (caso molto probabile con gli LLM), dobbiamo pulirla e parsiarla.\nif (typeof rawData === 'string') {\n    // Rimuovi i tag Markdown se presenti (```json ... ```)\n    const cleanJson = rawData.replace(/```json/g, '').replace(/```/g, '').trim();\n    try {\n        arch = JSON.parse(cleanJson);\n    } catch (e) {\n        throw new Error(\"Errore nel parsing del JSON. L'LLM ha restituito un formato non valido: \" + cleanJson);\n    }\n} else {\n    // Se è già un oggetto, lo usiamo direttamente\n    arch = rawData;\n}\n\n// 3. Controllo di sicurezza: verifichiamo che la struttura sia quella attesa\nif (!arch.domains || !Array.isArray(arch.domains)) {\n    // Se non troviamo 'domains', proviamo a vedere se è annidato\n    if (arch.architecture && arch.architecture.domains) {\n        arch = arch.architecture;\n    } else {\n         // Fallback per evitare il crash, ma segnalando l'errore nel grafico\n        return { mermaid_code: \"graph TD;\\nError[Errore: Il JSON ricevuto non contiene l'array 'domains'];\" };\n    }\n}\n\n// --- DA QUI IN POI È IL TUO CODICE ORIGINALE ADATTATO ---\n\nlet mermaid = \"C4Container\\n  title Container Diagram for \" + (arch.project_name || \"Project\") + \"\\n\\n\";\n\nmermaid += \"  Person(user, \\\"Rider/User\\\", \\\"Interagisce con il sistema\\\")\\n\";\nmermaid += \"  Person(ops, \\\"Fleet Ops\\\", \\\"Gestisce flotta e validazioni\\\")\\n\\n\";\n\nmermaid += \"  System_Boundary(c1, \\\"\" + (arch.project_name || \"System\") + \"\\\") {\\n\";\n\n// Qui ora siamo sicuri che arch.domains esiste\narch.domains.forEach(domain => {\n  if (domain.services) {\n      domain.services.forEach(service => {\n        // Pulizia nomi per evitare caratteri non validi in Mermaid\n        const safeRole = (service.role || \"Service\").replace(/[^a-zA-Z0-9]/g, ''); \n        \n        // Crea il Container del Microservizio\n        mermaid += `    Container(${safeRole}, \"${service.service_name}\", \"${service.api_type}\", \"${domain.description}\")\\n`;\n        \n        // Crea il Container del Database\n        if (service.database && service.database !== \"None\") {\n          const safeDbName = safeRole + \"Db\";\n          mermaid += `    ContainerDb(${safeDbName}, \"${service.database}\", \"Database\", \"Persistenza per ${service.service_name}\")\\n`;\n          mermaid += `    Rel(${safeRole}, ${safeDbName}, \"Legge/Scrive\", \"SQL/NoSQL\")\\n`;\n        }\n      });\n  }\n});\n\nmermaid += \"  }\\n\\n\";\n\n// Relazioni di base (Generiche, perché non sappiamo i nomi esatti dei servizi generati dinamicamente)\n// Cerchiamo di collegare l'utente al primo servizio trovato se possibile, altrimenti usiamo placeholder\nmermaid += \"  Rel(user, c1, \\\"Usa l'app\\\", \\\"HTTPS\\\")\\n\";\nmermaid += \"  Rel(ops, c1, \\\"Gestisce\\\", \\\"HTTPS\\\")\\n\";\n\nreturn { mermaid_code: mermaid };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        -288
+      ],
+      "id": "599eb4c3-73b4-475a-8ee3-489b3c8f2700",
+      "name": "Mermaid Generator"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Redis_Get_Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Interviewer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Interviewer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Summarizer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarizer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interviewer": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarizer": {
+      "main": [
+        [
+          {
+            "node": "Redis Set Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "DDD Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Redis Get Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DDD Analyst": {
+      "main": [
+        [
+          {
+            "node": "JSON coder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "JSON coder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON coder": {
+      "main": [
+        [
+          {
+            "node": "Mermaid Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get Summary": {
+      "main": [
+        [
+          {
+            "node": "Summarizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Set Summary": {
+      "main": [
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis_Get_Summary": {
+      "main": [
+        [
+          {
+            "node": "Interviewer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "DDD Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mermaid Generator": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6f881349-09a2-49d7-934e-12e96d32a3df",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"
+  },
+  "id": "EqGh2CuFr1Uglb4z",
+  "tags": []
+}

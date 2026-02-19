@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Agente DDD - Full Screen</title>
+    <style>
+        /* --- STILE CSS --- */
+        body {
+            font-family: sans-serif;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Il contenitore occupa ora tutto lo schermo */
+        #chat-box {
+            width: 100%;
+            height: 100vh;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header della chat - Fisso in alto */
+        .chat-header {
+            padding: 15px 25px;
+            background-color: #0084ff;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        /* L'area dove scorrono i messaggi - Prende tutto lo spazio centrale */
+        #chat-history {
+            flex: 1;
+            padding: 20px 10%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #f9f9f9;
+        }
+
+        /* Stile generale per una riga di messaggio */
+        .message-row {
+            display: flex;
+            width: 100%;
+        }
+
+        /* Allineamento messaggi */
+        .user-row {
+            justify-content: flex-end;
+        }
+
+        .ai-row {
+            justify-content: flex-start;
+        }
+
+        /* La nuvoletta del messaggio standard */
+        .bubble {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* NUOVO: Stile per il blocco JSON (Architettura) */
+        .json-bubble {
+            background-color: #2d2d2d;
+            /* Sfondo scuro editor */
+            color: #f8f8f2;
+            /* Testo chiaro */
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            /* Font codice */
+            font-size: 13px;
+            width: 90%;
+            /* Più largo per leggibilità */
+            overflow-x: auto;
+            /* Scroll orizzontale */
+            white-space: pre-wrap;
+            /* Mantiene indentazione */
+            border: 1px solid #444;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            text-align: left;
+        }
+
+        /* Container per gestire il bottone copia insieme al JSON */
+        .json-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 90%;
+        }
+
+        /* Bottone Copia JSON */
+        .copy-btn {
+            margin-top: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            align-self: flex-end;
+            /* Allineato a destra del blocco codice */
+            font-weight: bold;
+        }
+
+        .copy-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* Colore nuvoletta UTENTE */
+        .user-bubble {
+            background-color: #0084ff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        /* Colore nuvoletta AI */
+        .ai-bubble {
+            background-color: #e4e6eb;
+            color: black;
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Area di input in basso */
+        .input-area {
+            padding: 20px 10%;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 15px;
+            background-color: #fff;
+        }
+
+        #messaggio {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        button#send-btn {
+            padding: 10px 25px;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button#send-btn:hover {
+            background-color: #006bcf;
+        }
+
+        button#send-btn:disabled {
+            background-color: #ccc;
+        }
+
+        .ai-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+
+            #chat-history,
+            .input-area {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+            .bubble {
+                max-width: 85%;
+            }
+
+            .json-bubble {
+                width: 100%;
+            }
+        }
+
+
+        /* --- ANIMAZIONE CARICAMENTO (Typing Indicator) --- */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            column-gap: 6px;
+            padding: 15px 20px;
+            background-color: #e4e6eb;
+            /* Stesso grigio dei messaggi AI */
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            width: fit-content;
+            margin-bottom: 15px;
+            /* Spazio sotto */
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #90949c;
+            border-radius: 50%;
+            animation: blink 1.4s infinite both;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 0.2;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="chat-box">
+        <div class="chat-header">
+            <span>Intervista DDD</span>
+            <button onclick="resetChat()"
+                style="background-color: #ffffff; color: #0084ff; border: none; padding: 8px 15px; font-size: 13px; border-radius: 20px; cursor: pointer; font-weight: bold;">
+                Nuova Chat
+            </button>
+        </div>
+
+        <div id="chat-history"></div>
+
+        <div class="input-area">
+            <input type="text" id="messaggio" placeholder="Scrivi un messaggio..." onkeypress="handleKeyPress(event)">
+            <button id="send-btn" onclick="invia()">Invia</button>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGICA JS ---
+        let sessionId = localStorage.getItem('chat_session_id');
+        if (!sessionId) {
+            sessionId = 'sess_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_session_id', sessionId);
+        }
+
+        const chatHistory = document.getElementById('chat-history');
+        const messageInput = document.getElementById('messaggio');
+        const sendBtn = document.getElementById('send-btn');
+
+        // Funzione modificata per gestire isJson
+        function appendMessage(text, sender, isJson = false) {
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('message-row');
+            rowDiv.classList.add(sender === 'user' ? 'user-row' : 'ai-row');
+
+            const contentDiv = document.createElement('div');
+            contentDiv.style.display = 'flex';
+            contentDiv.style.flexDirection = 'column';
+
+            if (sender === 'ai') {
+                contentDiv.style.alignItems = 'flex-start';
+                // Se è JSON, usiamo la classe container speciale
+                if (isJson) {
+                    contentDiv.classList.add('json-container');
+                }
+            }
+
+            if (sender === 'ai') {
+                const label = document.createElement('div');
+                label.classList.add('ai-label');
+                // Cambia etichetta se è un design architetturale
+                label.innerText = isJson ? 'Agente DDD (Architettura Proposta)' : 'Agente DDD';
+                contentDiv.appendChild(label);
+            }
+
+            const bubbleDiv = document.createElement('div');
+
+            if (isJson) {
+                // --- MODALITÀ JSON ---
+                bubbleDiv.classList.add('json-bubble');
+
+                // Formattazione (Pretty Print)
+                let jsonString = "";
+                try {
+                    // Se arriva come stringa, parsalo poi stringificalo per indentare
+                    const obj = typeof text === 'string' ? JSON.parse(text) : text;
+                    jsonString = JSON.stringify(obj, null, 2);
+                } catch (e) {
+                    jsonString = text; // Fallback
+                }
+                bubbleDiv.innerText = jsonString;
+
+                // Aggiungiamo il bottone Copia
+                const copyBtn = document.createElement('button');
+                copyBtn.classList.add('copy-btn');
+                copyBtn.innerText = "Copia JSON";
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(jsonString);
+                    copyBtn.innerText = "Copiato!";
+                    setTimeout(() => copyBtn.innerText = "Copia JSON", 2000);
+                };
+
+                // Aggiungiamo bolla e bottone
+                contentDiv.appendChild(bubbleDiv);
+                contentDiv.appendChild(copyBtn);
+
+            } else {
+                // --- MODALITÀ TESTO STANDARD ---
+                bubbleDiv.classList.add('bubble');
+                bubbleDiv.classList.add(sender === 'user' ? 'user-bubble' : 'ai-bubble');
+                bubbleDiv.innerText = text;
+                contentDiv.appendChild(bubbleDiv);
+            }
+
+            rowDiv.appendChild(contentDiv);
+            chatHistory.appendChild(rowDiv);
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') invia();
+        }
+
+        function resetChat() {
+            if (confirm("Vuoi davvero cancellare tutta la conversazione e ricominciare?")) {
+                localStorage.removeItem('chat_session_id');
+                location.reload();
+            }
+        }
+
+
+        // Funzione per mostrare i puntini
+        function showLoading() {
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('message-row', 'ai-row');
+            rowDiv.id = 'loading-bubble'; // ID per trovarlo e cancellarlo dopo
+
+            const contentDiv = document.createElement('div');
+
+            // Creiamo la bolla animata
+            const bubble = document.createElement('div');
+            bubble.classList.add('typing-indicator');
+
+            // I tre pallini
+            bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+            contentDiv.appendChild(bubble);
+            rowDiv.appendChild(contentDiv);
+            chatHistory.appendChild(rowDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Funzione per nascondere i puntini
+        function hideLoading() {
+            const loader = document.getElementById('loading-bubble');
+            if (loader) {
+                loader.remove();
+            }
+        }
+
+        async function invia() {
+            const msg = messageInput.value;
+            if (!msg.trim()) return;
+
+            // 1. Mostra messaggio utente
+            appendMessage(msg, 'user');
+            messageInput.value = '';
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // 2. MOSTRA IL CARICAMENTO
+            showLoading();
+
+            try {
+                const response = await fetch('http://localhost:5678/webhook-test/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: msg,
+                        sessionId: sessionId
+                    })
+                });
+
+                const data = await response.json();
+
+                // 3. NASCONDI IL CARICAMENTO (Risposta arrivata!)
+                hideLoading();
+
+                // Gestione output testo
+                if (data.output) {
+                    let testoDisplay = typeof data.output === 'string'
+                        ? data.output.replace(/^[\s_]+|[\s_]+$/g, '')
+                        : JSON.stringify(data.output);
+                    appendMessage(testoDisplay, 'ai', false);
+                }
+
+                // Gestione output JSON Architettura
+                if (data.architecture_json) {
+                    appendMessage(data.architecture_json, 'ai', true);
+                }
+
+            } catch (error) {
+                console.error("Errore:", error);
+                hideLoading(); // Nascondi anche in caso di errore
+                appendMessage("Errore di comunicazione con il server.", 'ai');
+            } finally {
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+    </script>
+</body>
+
+</html>
