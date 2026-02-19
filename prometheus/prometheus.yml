@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # Modify the job_name and targets according to your service details
+  - job_name: microservice
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["microservice:3000"]

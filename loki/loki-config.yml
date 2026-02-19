@@ -1,0 +1,71 @@
+# Loki Configuration
+#
+# Loki is a log aggregation system designed to store and query logs.
+# It's designed to be cost-effective and easy to operate.
+
+# Disable authentication for local development
+auth_enabled: false
+
+server:
+  # Loki listens on port 3100
+  http_listen_port: 3100
+  # Allow large log messages (10MB)
+  grpc_server_max_recv_msg_size: 10485760
+  grpc_server_max_send_msg_size: 10485760
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    # Use local filesystem for storage (not for production!)
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  # Single instance mode (no replication)
+  replication_factor: 1
+  ring:
+    kvstore:
+      # In-memory key-value store (simple, for development)
+      store: inmemory
+
+# Schema configuration defines how logs are indexed and stored
+schema_config:
+  configs:
+    - from: 2024-01-01
+      # TSDB index type (newer, more efficient)
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        # Index rotation period (new index every 24 hours)
+        period: 24h
+
+# Query limits to prevent overwhelming the system
+limits_config:
+  # Reject logs older than 7 days
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  # Maximum number of streams a query can return
+  max_streams_per_user: 10000
+  # Ingestion rate limits (10MB/sec per tenant)
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+
+# Compactor cleans up old data and optimizes storage
+compactor:
+  working_directory: /loki/compactor
+  compaction_interval: 10m
+
+# Ruler evaluates rules and alerts (optional, not used in this demo)
+ruler:
+  storage:
+    type: local
+    local:
+      directory: /loki/rules
+  rule_path: /loki/rules-temp
+  alertmanager_url: http://localhost:9093
+  ring:
+    kvstore:
+      store: inmemory
+  enable_api: true

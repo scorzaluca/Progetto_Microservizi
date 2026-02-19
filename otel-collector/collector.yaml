@@ -1,0 +1,54 @@
+# OpenTelemetry Collector Configuration
+#
+# The OTEL Collector receives telemetry data (logs, metrics, traces) from applications
+# and forwards them to backend systems like Loki and Tempo.
+
+receivers:
+  # OTLP receiver accepts telemetry data in OpenTelemetry Protocol format
+  otlp:
+    protocols:
+      # HTTP endpoint on port 4318 (our services will send data here)
+      http:
+        endpoint: 0.0.0.0:4318
+      # gRPC endpoint on port 4317 (alternative protocol)
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  # Batch processor groups multiple telemetry records together
+  # This is more efficient than sending each log/trace individually
+  batch:
+    timeout: 1s
+    send_batch_size: 100
+
+exporters:
+  # Export logs to Loki using OTLP format
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
+  # Export traces to Tempo using OTLP format
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  # Debug exporter prints telemetry to console (useful for troubleshooting)
+  debug:
+    verbosity: detailed
+
+service:
+  # Define pipelines for different telemetry signals
+  pipelines:
+    # Logs pipeline: OTLP receiver -> batch processor -> Loki exporter
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp/loki, debug]
+
+    # Traces pipeline: OTLP receiver -> batch processor -> Tempo exporter
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, debug]

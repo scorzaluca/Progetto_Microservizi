@@ -1,0 +1,127 @@
+version: "3.8"
+
+services:
+  # --- STACK DI OSSERVABILITÀ (Il tuo lavoro) ---
+  loki:
+    image: grafana/loki:3.5.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - ./.runtime/data/loki:/loki
+    networks:
+      - rete_unica
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:2.9.0
+    container_name: tempo
+    ports:
+      - "3200:3200"
+    command: -config.file=/etc/tempo/tempo-config.yml
+    volumes:
+      - ./tempo/tempo-config.yml:/etc/tempo/tempo-config.yml:ro
+      - ./.runtime/data/tempo:/tmp/tempo
+    networks:
+      - rete_unica
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.133.0
+    container_name: otel-collector
+    ports:
+      - "4318:4318"
+      - "4317:4317"
+    command: --config=/etc/otelcol/collector.yaml
+    volumes:
+      - ./otel-collector/collector.yaml:/etc/otelcol/collector.yaml:ro
+    depends_on:
+      - loki
+      - tempo
+    networks:
+      - rete_unica
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - rete_unica
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.2
+    container_name: grafana
+    ports:
+      - "8080:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:8080
+      - GF_EXPLORE_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./.runtime/data/grafana:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
+    networks:
+      - rete_unica
+    restart: unless-stopped
+
+  # --- AGENTE 1 (Il lavoro dei tuoi compagni + integrazione Otel) ---
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: agente_interviewer_n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./Data_N8N:/home/node/.n8n
+    environment:
+      - GENERIC_TIMEZONE=Europe/Rome
+      - TZ=Europe/Rome
+      - OTEL_COLLECTOR_URL=http://otel-collector:4318  # Integrazione Osservabilità
+    networks:
+      - rete_unica
+    depends_on:
+      - redis
+      - ollama
+      - otel-collector
+
+  redis:
+    image: redis:alpine
+    container_name: agente_interviewer_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./Data_Redis:/data
+    networks:
+      - rete_unica
+
+
+  ollama:
+    image: ollama/ollama
+    container_name: agente_interviewer_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./Data_Ollama:/root/.ollama
+    networks:
+      - rete_unica
+
+# Unifichiamo tutto sotto un'unica rete
+networks:
+  rete_unica:
+    driver: bridge
+    name: rete_unica
