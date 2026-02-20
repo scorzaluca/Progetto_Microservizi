@@ -1,25 +1,51 @@
 # OpenTelemetry Collector Configuration
 #
 # The OTEL Collector receives telemetry data (logs, metrics, traces) from applications
-# and forwards them to backend systems like Loki and Tempo.
+# and forwards them to backend systems like Loki, Tempo, and Prometheus.
 
 receivers:
-  # OTLP receiver accepts telemetry data in OpenTelemetry Protocol format
+  # OTLP receiver accepts telemetry data in OpenTelemetry Protocol format (es. da n8n)
   otlp:
     protocols:
-      # HTTP endpoint on port 4318 (our services will send data here)
       http:
         endpoint: 0.0.0.0:4318
-      # gRPC endpoint on port 4317 (alternative protocol)
       grpc:
         endpoint: 0.0.0.0:4317
 
+  # NUOVO: Raccoglie le metriche esposte nativamente da Ollama
+  # OTel Collector per andare a leggere (fare scraping) le metriche che Ollama espone sulla porta 11434
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'ollama'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['ollama:11434']
+
+        # NUOVO: Questo è per Redis
+        - job_name: 'redis'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['redis-exporter:9121']
+
 processors:
   # Batch processor groups multiple telemetry records together
-  # This is more efficient than sending each log/trace individually
   batch:
     timeout: 1s
     send_batch_size: 100
+
+  # NUOVO: Quando aprirai Grafana, potrai filtrare i dati cercando domain="core_domain" o bounded_context="domain_modeling"
+  resource:
+    attributes:
+      - key: domain
+        value: "core_domain"
+        action: insert
+      - key: bounded_context
+        value: "domain_modeling"
+        action: insert
+      - key: service.name
+        value: "agent_1_interviewer"
+        action: insert
 
 exporters:
   # Export logs to Loki using OTLP format
@@ -34,6 +60,12 @@ exporters:
     tls:
       insecure: true
 
+  # NUOVO: Esporta le metriche verso Prometheus
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    tls:
+      insecure: true
+
   # Debug exporter prints telemetry to console (useful for troubleshooting)
   debug:
     verbosity: detailed
@@ -41,14 +73,18 @@ exporters:
 service:
   # Define pipelines for different telemetry signals
   pipelines:
-    # Logs pipeline: OTLP receiver -> batch processor -> Loki exporter
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [resource, batch] # Inserito il processore 'resource'
       exporters: [otlphttp/loki, debug]
 
-    # Traces pipeline: OTLP receiver -> batch processor -> Tempo exporter
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: [resource, batch] # Inserito il processore 'resource'
       exporters: [otlp/tempo, debug]
+
+    # NUOVA: Pipeline per la gestione delle metriche (es. Ollama)
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [resource, batch]
+      exporters: [prometheusremotewrite, debug]

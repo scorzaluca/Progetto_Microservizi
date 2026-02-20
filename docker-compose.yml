@@ -1,4 +1,4 @@
-version: "3.8"
+
 
 services:
   # --- STACK DI OSSERVABILITÀ (Il tuo lavoro) ---
@@ -14,6 +14,23 @@ services:
     networks:
       - rete_unica
     restart: unless-stopped
+
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      # Promtail ha bisogno di leggere i log fisici generati da Docker sul tuo computer/server
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # Mappiamo il file di configurazione che andremo a creare
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - rete_unica
+    depends_on:
+      - loki
+    restart: unless-stopped  
 
   tempo:
     image: grafana/tempo:2.9.0
@@ -49,8 +66,13 @@ services:
     container_name: prometheus
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-remote-write-receiver'  # NUOVO: Abilita la ricezione dei dati in push dall'OTel Collector
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Ti suggerisco di aggiungere anche un volume per persistere i dati di Prometheus, altrimenti al riavvio del container perdi lo storico delle metriche:
+      - ./.runtime/data/prometheus:/prometheus 
     networks:
       - rete_unica
     restart: unless-stopped
@@ -108,6 +130,20 @@ services:
       - ./Data_Redis:/data
     networks:
       - rete_unica
+
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - rete_unica
+    depends_on:
+      - redis
+    restart: unless-stopped    
 
 
   ollama:

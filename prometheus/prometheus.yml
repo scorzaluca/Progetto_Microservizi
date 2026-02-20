@@ -2,9 +2,6 @@ global:
   scrape_interval: 5s
   evaluation_interval: 5s
 
-scrape_configs:
-  # Modify the job_name and targets according to your service details
-  - job_name: microservice
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["microservice:3000"]
+# Le metriche arrivano via Remote Write dall'OTel Collector,
+# quindi Prometheus non ha bisogno di fare scraping diretto.
+scrape_configs: []
