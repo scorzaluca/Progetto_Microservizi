@@ -1,0 +1,34 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  # Salva a che punto è arrivato a leggere i log, così se si riavvia non duplica i dati
+  filename: /tmp/positions.yaml
+
+clients:
+  # URL di destinazione: il tuo container Loki
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker_containers
+    docker_sd_configs:
+      # Si collega a Docker per scoprire automaticamente tutti i container in esecuzione
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # 1. Prende il nome del container (es. "/ollama") e rimuove lo slash iniziale
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+      
+      # 2. Registra se il log è di tipo stdout o stderr
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'stream'
+
+      # 3. MANTENIAMO IL LINGUAGGIO UBIQUITARIO (DDD)
+      # Aggiungiamo le stesse etichette di business che abbiamo messo sulle metriche e sulle tracce!
+      - replacement: 'core_domain'
+        target_label: 'domain'
+      - replacement: 'domain_modeling'
+        target_label: 'bounded_context'
