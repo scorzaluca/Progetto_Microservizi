@@ -52,6 +52,22 @@ limits_config:
   ingestion_rate_mb: 10
   ingestion_burst_size_mb: 20
 
+  # OTLP config: definisce quali attributi OTLP diventano label indicizzate in Loki
+  # Di default, Loki promuove solo service.name → service_name
+  # Qui aggiungiamo gli attributi necessari per filtrare i log per container/stream/dominio
+  otlp_config:
+    resource_attributes:
+      attributes_config:
+        - action: index_label
+          attributes:
+            - service.name
+            - container.name
+            - container.id
+            - container.image.name
+            - log.iostream
+            - domain
+            - bounded_context
+
 # Compactor cleans up old data and optimizes storage
 compactor:
   working_directory: /loki/compactor
