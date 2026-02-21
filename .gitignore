@@ -1,6 +1,7 @@
 # --- Dati e Volumi (Runtime) ---
 Data_N8N/
 Data_Ollama/
+Data_Redis/
 # Se hai database o grafana persistent:
 data/
 *.db

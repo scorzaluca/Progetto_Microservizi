@@ -1,7 +1,3 @@
-# Tempo Configuration
-#
-# Tempo is a distributed tracing backend that stores and queries traces.
-# Traces help you understand the flow of requests through multiple services.
 
 server:
   http_listen_port: 3200

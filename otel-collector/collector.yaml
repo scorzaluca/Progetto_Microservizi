@@ -1,10 +1,14 @@
-# OpenTelemetry Collector Configuration
-#
-# The OTEL Collector receives telemetry data (logs, metrics, traces) from applications
-# and forwards them to backend systems like Loki, Tempo, and Prometheus.
+
+extensions:
+  # Docker Observer scopre automaticamente i container Docker via Docker socket
+  # Per ogni container, espone: name, container_id, image, port, labels
+  docker_observer:
+    endpoint: unix:///var/run/docker.sock
+    # Docker Desktop per Windows richiede min API v1.44
+    api_version: "1.45"
 
 receivers:
-  # OTLP receiver accepts telemetry data in OpenTelemetry Protocol format (es. da n8n)
+  # OTLP receiver riceve dati strutturati da n8n (log con trace_id + traces)
   otlp:
     protocols:
       http:
@@ -12,29 +16,68 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
 
-  # NUOVO: Raccoglie le metriche esposte nativamente da Ollama
-  # OTel Collector per andare a leggere (fare scraping) le metriche che Ollama espone sulla porta 11434
+  # Receiver Creator: crea DINAMICAMENTE un filelog receiver per ogni container
+  # scoperto dal docker_observer. Ogni receiver ha il NOME del container come
+  # resource attribute → diventa label in Loki → leggibile in Grafana!
+  receiver_creator/docker:
+    watch_observers: [docker_observer]
+    receivers:
+      filelog:
+        # Esclude il container otel-collector per evitare feedback loop
+        rule: type == "container" && name != "otel-collector"
+        config:
+          include:
+            - /var/lib/docker/containers/`container_id`/`container_id`-json.log
+          start_at: end
+          include_file_path: true
+          operators:
+            # I Docker log JSON tipo {"log":"...","stream":"stdout","time":"..."}
+            - type: json_parser
+              id: docker-json-parser
+              timestamp:
+                parse_from: attributes.time
+                layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+            # Sposta il messaggio dal campo .log al body del LogRecord
+            - type: move
+              id: move-body
+              from: attributes.log
+              to: body
+            # Rinomina stream (stdout/stderr)
+            - type: move
+              id: move-stream
+              from: attributes.stream
+              to: attributes["log.iostream"]
+        # Resource attributes dinamici: il nome del container viene dal docker_observer
+        # Questi diventano resource attributes → Loki li indicizza come label
+        resource_attributes:
+          container.name: '`name`'
+          container.id: '`container_id`'
+          container.image.name: '`image`'
+
+  # Prometheus receiver: scraping metriche da Redis Exporter
+  # Nota: Ollama NON espone un endpoint /metrics Prometheus nativo,
+  # quindi lo scraping è limitato al Redis Exporter
   prometheus:
     config:
       scrape_configs:
-        - job_name: 'ollama'
-          scrape_interval: 10s
-          static_configs:
-            - targets: ['ollama:11434']
-
-        # NUOVO: Questo è per Redis
         - job_name: 'redis'
           scrape_interval: 10s
           static_configs:
             - targets: ['redis-exporter:9121']
 
 processors:
-  # Batch processor groups multiple telemetry records together
+  # Batch: raggruppa i record per efficienza di rete
   batch:
     timeout: 1s
     send_batch_size: 100
 
-  # NUOVO: Quando aprirai Grafana, potrai filtrare i dati cercando domain="core_domain" o bounded_context="domain_modeling"
+  # GroupByAttrs: promuove attributi dei log a RESOURCE attributes
+  # Fondamentale perché Loki usa solo i resource attributes come label
+  groupbyattrs:
+    keys:
+      - log.iostream
+
+  # Resource: aggiunge attributi DDD a tutti i segnali per filtraggio in Grafana
   resource:
     attributes:
       - key: domain
@@ -48,42 +91,44 @@ processors:
         action: insert
 
 exporters:
-  # Export logs to Loki using OTLP format
+  # Logs → Loki
   otlphttp/loki:
     endpoint: http://loki:3100/otlp
     tls:
       insecure: true
 
-  # Export traces to Tempo using OTLP format
+  # Traces → Tempo
   otlp/tempo:
     endpoint: tempo:4317
     tls:
       insecure: true
 
-  # NUOVO: Esporta le metriche verso Prometheus
+  # Metriche → Prometheus (via Remote Write)
   prometheusremotewrite:
     endpoint: http://prometheus:9090/api/v1/write
     tls:
       insecure: true
 
-  # Debug exporter prints telemetry to console (useful for troubleshooting)
+  # Debug: stampa la telemetria in console
   debug:
-    verbosity: detailed
+    verbosity: basic
 
 service:
-  # Define pipelines for different telemetry signals
+  # Registra le extensions nel service
+  extensions: [docker_observer]
   pipelines:
+    # Log: da n8n (OTLP) + da tutti i container (receiver_creator con docker_observer)
     logs:
-      receivers: [otlp]
-      processors: [resource, batch] # Inserito il processore 'resource'
+      receivers: [otlp, receiver_creator/docker]
+      processors: [groupbyattrs, resource, batch]
       exporters: [otlphttp/loki, debug]
 
     traces:
       receivers: [otlp]
-      processors: [resource, batch] # Inserito il processore 'resource'
+      processors: [resource, batch]
       exporters: [otlp/tempo, debug]
 
-    # NUOVA: Pipeline per la gestione delle metriche (es. Ollama)
+    # Metriche: da n8n (OTLP) + scraping Ollama e Redis
     metrics:
       receivers: [otlp, prometheus]
       processors: [resource, batch]

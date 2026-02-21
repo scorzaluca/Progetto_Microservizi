@@ -1,7 +1,4 @@
-
-
 services:
-  # --- STACK DI OSSERVABILITÀ (Il tuo lavoro) ---
   loki:
     image: grafana/loki:3.5.0
     container_name: loki
@@ -14,23 +11,6 @@ services:
     networks:
       - rete_unica
     restart: unless-stopped
-
-
-  promtail:
-    image: grafana/promtail:2.9.0
-    container_name: promtail
-    volumes:
-      # Promtail ha bisogno di leggere i log fisici generati da Docker sul tuo computer/server
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      # Mappiamo il file di configurazione che andremo a creare
-      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
-    command: -config.file=/etc/promtail/promtail-config.yml
-    networks:
-      - rete_unica
-    depends_on:
-      - loki
-    restart: unless-stopped  
 
   tempo:
     image: grafana/tempo:2.9.0
@@ -48,12 +28,15 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.133.0
     container_name: otel-collector
+    user: "0" # Necessario per leggere i log Docker in /var/lib/docker/containers
     ports:
       - "4318:4318"
       - "4317:4317"
     command: --config=/etc/otelcol/collector.yaml
     volumes:
       - ./otel-collector/collector.yaml:/etc/otelcol/collector.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro # Log di tutti i container Docker
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Accesso a Docker
     depends_on:
       - loki
       - tempo
@@ -68,11 +51,10 @@ services:
       - "9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--web.enable-remote-write-receiver'  # NUOVO: Abilita la ricezione dei dati in push dall'OTel Collector
+      - '--web.enable-remote-write-receiver'
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      # Ti suggerisco di aggiungere anche un volume per persistere i dati di Prometheus, altrimenti al riavvio del container perdi lo storico delle metriche:
-      - ./.runtime/data/prometheus:/prometheus 
+      - ./.runtime/data/prometheus:/prometheus
     networks:
       - rete_unica
     restart: unless-stopped
@@ -101,8 +83,6 @@ services:
       - rete_unica
     restart: unless-stopped
 
-  # --- AGENTE 1 (Il lavoro dei tuoi compagni + integrazione Otel) ---
-
   n8n:
     image: docker.n8n.io/n8nio/n8n
     container_name: agente_interviewer_n8n
@@ -113,13 +93,14 @@ services:
     environment:
       - GENERIC_TIMEZONE=Europe/Rome
       - TZ=Europe/Rome
-      - OTEL_COLLECTOR_URL=http://otel-collector:4318  # Integrazione Osservabilità
+      - OTEL_COLLECTOR_URL=http://otel-collector:4318
     networks:
       - rete_unica
     depends_on:
       - redis
       - ollama
       - otel-collector
+    restart: unless-stopped
 
   redis:
     image: redis:alpine
@@ -130,7 +111,7 @@ services:
       - ./Data_Redis:/data
     networks:
       - rete_unica
-
+    restart: unless-stopped
 
   redis-exporter:
     image: oliver006/redis_exporter:latest
@@ -143,8 +124,7 @@ services:
       - rete_unica
     depends_on:
       - redis
-    restart: unless-stopped    
-
+    restart: unless-stopped
 
   ollama:
     image: ollama/ollama
@@ -155,8 +135,8 @@ services:
       - ./Data_Ollama:/root/.ollama
     networks:
       - rete_unica
+    restart: unless-stopped
 
-# Unifichiamo tutto sotto un'unica rete
 networks:
   rete_unica:
     driver: bridge
