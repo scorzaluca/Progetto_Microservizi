@@ -1,0 +1,752 @@
+{
+  "name": "REFINEMENT WORKFLOW_locale",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "message"
+            },
+            {
+              "name": "sessionid"
+            },
+            {
+              "name": "action"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        -64
+      ],
+      "id": "ffecc597-5dca-48fa-b786-792488b1d562",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "UPDATE_REQUEST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "f662ef0a-d352-4139-abb5-99b297de8d50"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "986bcae4-cee5-4dba-928f-017e5727c1eb",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "UPDATE_REQUEST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notContains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        -48
+      ],
+      "id": "d38c2e31-ab4f-4e7b-bb2f-051f6c64026b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Apply the UPDATE_REQUEST found in the COMMAND to the CURRENT_JSON. \nOutput ONLY the fully updated valid JSON object. Do not include any markdown, explanations, or text.",
+        "options": {
+          "systemMessage": "=# ROLE\nYou are a headless, deterministic JSON Manipulation Engine. You are not a chatbot or an AI assistant. You do not converse, explain, or apologize. Your ONLY purpose is to apply surgical structural updates to a software architecture JSON based on a specific command, and return the modified JSON.\n\n# INPUT DATA\n- CURRENT_JSON: {{ $('Redis Get json').item.json.architecture_json }}\n- COMMAND: {{ $('MODIFIER').item.json.output }}\n\n# STRICT DIRECTIVES & ANTI-HALLUCINATION RULES\n1. ZERO CONVERSATION: Output ONLY the raw JSON object. Do not output a single word of natural language before or after the JSON.\n2. NO MARKDOWN: NEVER use Markdown formatting. Do NOT wrap your response in ```json or ```. The very first character of your output MUST be `{` and the very last character MUST be `}`.\n3. ABSOLUTE PRESERVATION: You must meticulously preserve every single key, array, object, and value from the CURRENT_JSON that is not explicitly targeted by the COMMAND. Do not rename, reorder, auto-fill, or delete unrelated data.\n4. SURGICAL EXECUTION & SCHEMA AWARENESS: Read the [UPDATE_REQUEST: ...] inside the COMMAND. Identify the exact Target_Path. Apply ONLY the Action and Details requested. \n   - CRITICAL 1 (Entities): When adding or modifying an 'Entity' inside a Bounded Context, you MUST use the object structure: {\"name\": \"EntityName\", \"attributes\": [\"attr1\", \"attr2\"]}. Never insert an entity as a simple string.\n   - CRITICAL 2 (Domain Events): When adding an Event in 'eda_integration', you MUST output an object matching the schema: {\"event_name\": \"...\", \"produced_by_aggregate\": \"...\", \"produced_in_context\": \"...\", \"trigger_condition\": \"...\", \"consumed_by\": [\"...\"]}.\n   - CRITICAL 3 (Data Types): For simple arrays (like 'generic_subdomains', 'read_models', 'commands'), insert simple strings.\n   - CRITICAL 4 (Root Keys): Never invent new top-level fields. The schema strictly revolves around: strategic_analysis, boundaries_and_language, eda_integration, tactical_patterns, technical_excellence.\n5. SYNTAX VALIDATION: Ensure the final output is a 100% valid, properly escaped, and well-formed JSON string. Pay strict attention to trailing commas, missing brackets, and unescaped quotes.\n\n# EXECUTION WORKFLOW\n1. Parse CURRENT_JSON into your internal memory.\n2. Extract the exact instruction from the [UPDATE_REQUEST] tag within the COMMAND.\n3. Traverse the CURRENT_JSON exactly to the specified Target_Path.\n4. Apply the requested modification (Add, Modify, Delete, or Move).\n5. Output the resulting complete JSON object following all STRICT DIRECTIVES."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        912,
+        -256
+      ],
+      "id": "5e6e7741-87a8-499b-952a-9d06d7a275fe",
+      "name": "JSON patcher"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "PASS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "25fb59fc-4943-4803-acd9-0aa3097fcbaa"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "edfb9cff-4265-45aa-a67f-eb57ff693e11",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "FAIL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1520,
+        -256
+      ],
+      "id": "47d54451-2186-4721-8f64-03989a198097",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0620a30-c8f9-4c9d-b205-9bb9488f4828",
+              "name": "output",
+              "value": "={{ $('MODIFIER').item.json.output.split('[TARGET_SECTION')[0].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "216ee78b-c7a9-4ca7-bb63-fa6c0e683df5",
+              "name": "architecture_json",
+              "value": "={{ $('JSON patcher').item.json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "79fae7ac-8222-430f-8fd6-a59298779e9b",
+              "name": "is_draft",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        -272
+      ],
+      "id": "549da277-7ed9-4003-8f53-538f8148b397",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "architecture_json",
+        "key": "=discovery_json:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -64
+      ],
+      "id": "2441986a-fd23-4436-81a5-08f8a8923b15",
+      "name": "Redis Get json",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=chat_history_refinement:{{ $('When Executed by Another Workflow').item.json.sessionid }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        -48
+      ],
+      "id": "914224f4-81db-43f0-812f-4779f450d543",
+      "name": "Redis delete refinement history 2",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=draft_json:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "value": "={{ JSON.stringify($json) }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -272
+      ],
+      "id": "2c141e03-a557-4cd0-8d46-56e6230837aa",
+      "name": "Redis set drafted json",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "temperature": 0,
+          "numCtx": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        912,
+        -48
+      ],
+      "id": "26078b5b-0011-4d8f-a7bf-dba2cf8c1791",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"agent_message\": \"={{ $('MODIFIER').item.json.output.split('[TARGET_SECTION')[0].trim() }}\",\n  \"status\": \"refining\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        -256
+      ],
+      "id": "39a838fc-a48e-4906-998d-f622c9a68276",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"output\": \"={{ $('MODIFIER').item.json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        32
+      ],
+      "id": "fa4ab9e5-2658-4e60-8d53-9a58e56df16b",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=draft_status:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "value": "failed"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        -48
+      ],
+      "id": "16b659d5-4064-46ab-8b6c-c7603caad949",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.action }}",
+                    "rightValue": "explain",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "64cf0b50-97e9-4089-8a43-d29a6d15cfe8"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "39d3489e-2dd9-41a3-885b-0cfff9930688",
+                    "leftValue": "={{ $('When Executed by Another Workflow').item.json.action }}",
+                    "rightValue": "modify",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        -64
+      ],
+      "id": "0a7e34f3-65f0-446b-8d14-a43b0beb61e1",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Request for Architecture Update: {{ $('When Executed by Another Workflow').item.json.message }}",
+        "options": {
+          "systemMessage": "# ROLE\nYou are a Senior Software Architect and Domain Expert specializing in Domain-Driven Design (DDD) and Event-Driven Architecture (EDA). Your goal is to translate user feedback into surgical structural updates. Act as a technical peer: precise, critical, and direct.\n\n# CONTEXT (THE \"JSON GOLD\")\nCurrent Architecture State: {{ $node[\"Redis Get json\"].json.architecture_json }}\n\n# GROUNDING & SAFETY RULES\n1. STRICT GROUNDING: Verify the existence of every Domain, Aggregate, or Entity in the \"JSON GOLD\" before responding. If a component is missing, treat it as a new proposal or ask for clarification.\n2. PATH VERIFICATION: Before issuing tags, cross-check the hierarchy. Ensure names exactly match the JSON keys.\n3. MINIMUM UPDATE REQUIREMENTS: Do not issue tags until you have confirmed the specific action, the exact target section, and the technical details required (e.g., attributes for entities, triggers for events).\n\n# RESPONSE STYLE\n1. NO CONVERSATIONAL FILLERS: Start your response directly with the technical analysis or the question.\n2. TECHNICAL STRUCTURE: Use bullet points and professional Italian terminology (accoppiamento, coesione, consistenza eventuale).\n\n# OPERATIONAL PROTOCOL\n1. LANGUAGE: Always respond to the user in ITALIAN. Use technical specs in English ONLY within the update tags.\n2. CRITICAL EVALUATION: Do not accept changes that violate DDD principles. If a change is inconsistent, reject it by explaining the risks in Italian and DO NOT issue tags.\n3. COMPLEXITY THRESHOLD (MULTI-SECTION REJECTION): You can only process updates for ONE Target Section at a time. If the user requests a massive overhaul or changes spanning multiple Target Sections simultaneously, DO NOT issue tags. Reject the request in Italian, explaining that to maintain architectural integrity, you must proceed step-by-step.\n4. THE \"TRIGGER\" (UNIVERSAL PATCH TAGS):\n   When a modification is approved, you MUST append exactly these 5 structural blocks at the end of your message. Do not combine them.\n   [TARGET_SECTION: <Section_Name>]\n   [ACTION: ADD | MODIFY | DELETE | MOVE]\n   [TARGET_PATH: <Hierarchy_Path_In_JSON>]\n   [KEY_IDENTIFIER: <Exact_Name_Of_The_Element>]\n   [DATA_PAYLOAD: <Specs_In_English_or_NONE>]\n\n   Example ADD:\n   [TARGET_SECTION: boundaries_and_language]\n   [ACTION: ADD]\n   [TARGET_PATH: bounded_contexts[0].aggregate_roots[0].entities]\n   [KEY_IDENTIFIER: Invoice]\n   [DATA_PAYLOAD: attributes: ['id', 'total_amount']]\n\n   Example DELETE:\n   [TARGET_SECTION: eda_integration]\n   [ACTION: DELETE]\n   [TARGET_PATH: domain_events]\n   [KEY_IDENTIFIER: OldOrderEvent]\n   [DATA_PAYLOAD: NONE]\n\n# CONSTRAINTS\n- NEVER output the JSON code yourself.\n- NEVER use markdown code blocks for architecture.\n- If instructions are vague, keep investigating in Italian without emitting tags."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -48
+      ],
+      "id": "a9cc16bc-61d8-48b3-a35d-fabbe47f736e",
+      "name": "MODIFIER"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"output\": \"={{ $('Explainer').item.json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        -464
+      ],
+      "id": "c4a6267f-ddee-414d-8cd6-90bbb46ebc4b",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User Question: {{ $('When Executed by Another Workflow').item.json.message }}",
+        "options": {
+          "systemMessage": "# ROLE\nYou are a Senior Software Architect and Domain Expert specializing in DDD and EDA. Your goal is to explain architectural choices, flows, and current system logic to the user. Act as a technical peer: precise and analytical.\n\n# CONTEXT (THE \"JSON GOLD\")\nCurrent Architecture State: {{ $node[\"Redis Get json\"].json.architecture_json }}\n\n# GROUNDING & SAFETY RULES\n1. STRICT GROUNDING: Every explanation must be based solely on the data within the \"JSON GOLD\". Do not hallucinate undocumented components or flows.\n2. NO MODIFICATIONS: You are not authorized to suggest or implement changes. Your purpose is purely educational and analytical.\n\n# RESPONSE STYLE\n1. NO CONVERSATIONAL FILLERS: Start directly with the technical explanation.\n2. NO POLITENESS OVERLOAD: Maintain a functional and professional tone.\n3. TECHNICAL STRUCTURE: Use bullet points for complex concepts. Use correct Italian technical terminology (e.g., \"ubiquitous language\", \"bounded context\").\n\n# OPERATIONAL PROTOCOL\n1. LANGUAGE: Always respond to the user in ITALIAN.\n2. EXPLAINING LOGIC: If the user asks \"why\" regarding a choice, analyze the JSON's consistency against DDD/EDA principles.\n3. INHIBITION RULE: NEVER emit [UPDATE_REQUEST] or [TARGET_SECTION] tags. If the user asks for changes, cordially invite them to use the \"Modifica\" (Modify) function.\n\n# CONSTRAINTS\n- NEVER output JSON code.\n- NEVER use markdown code blocks for architecture.\n- If the user asks non-technical or modification-related questions, steer the conversation back to explaining the current state."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        -464
+      ],
+      "id": "3f1bb2ba-7a6b-412a-baf3-6d51a1d9d801",
+      "name": "EXPLAINER"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "temperature": 0.4,
+          "numCtx": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -256
+      ],
+      "id": "891a20d5-1569-47e0-ba62-2a425743b35f",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {
+          "temperature": 0.1,
+          "numCtx": 8192
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        80,
+        160
+      ],
+      "id": "17b6ec52-2c7c-4f3d-a7ca-65f532f71f9e",
+      "name": "Ollama Chat Model4",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=chat_history_refinement:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "contextWindowLength": 40
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        224,
+        224
+      ],
+      "id": "bec9296f-746a-4ba3-811c-d9eedd253d2b",
+      "name": "Redis Chat Memory1",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Recupero i dati dai nodi precedenti\nconst originalStr = $('Redis Get json').item.json.architecture_json;\nconst original = JSON.parse(originalStr);\nconst proposedStr = $('JSON patcher').item.json.output;\nconst command = $('MODIFIER').item.json.output;\n\nlet proposed;\n\n// 2. Controllo Sintassi JSON (Anti-Crash)\ntry {\n    proposed = JSON.parse(proposedStr);\n} catch (e) {\n    return { output: \"FAIL\", reason: \"Sintassi JSON corrotta dal Patcher.\" };\n}\n\n// 3. Estrazione dei Blocchi Strutturali tramite Regex\nconst sectionMatch = command.match(/\\[TARGET_SECTION:\\s*([^\\]]+)\\]/);\nconst actionMatch = command.match(/\\[ACTION:\\s*([^\\]]+)\\]/);\nconst keyMatch = command.match(/\\[KEY_IDENTIFIER:\\s*([^\\]]+)\\]/);\n\nconst target = sectionMatch ? sectionMatch[1].trim() : null;\nconst action = actionMatch ? actionMatch[1].trim().toUpperCase() : null;\nconst keyId = keyMatch ? keyMatch[1].trim() : null;\n\n// Se il MODIFIER ha saltato un blocco vitale, blocchiamo tutto\nif (!target || !action || !keyId) {\n    return { output: \"FAIL\", reason: \"Tag strutturali mancanti nel comando del Modifier.\" };\n}\n\n// 4. Definizione dei Pilastri Sacri\nconst pillars = [\n    \"strategic_analysis\", \n    \"boundaries_and_language\", \n    \"eda_integration\", \n    \"tactical_patterns\", \n    \"technical_excellence\"\n];\n\nif (!pillars.includes(target)) {\n    return { output: \"FAIL\", reason: `Target Section non riconosciuta: ${target}` };\n}\n\n// 5. LA GHIGLIOTTINA: Integrità Assoluta dei Pilastri Non Autorizzati\nfor (const p of pillars) {\n    if (p !== target) {\n        if (JSON.stringify(original[p]) !== JSON.stringify(proposed[p])) {\n            return { output: \"FAIL\", reason: `Violazione: la sezione '${p}' è stata modificata ma non era il target.` };\n        }\n    }\n}\n\n// 6. VALIDAZIONE DELL'AZIONE (Ha fatto davvero ciò che doveva?)\nconst originalTargetStr = JSON.stringify(original[target]);\nconst proposedTargetStr = JSON.stringify(proposed[target]);\n\n// A. Controllo Base: La sezione DEVE essere cambiata. Se è identica, il Patcher ha fallito.\nif (originalTargetStr === proposedTargetStr) {\n    return { output: \"FAIL\", reason: `Il Patcher non ha apportato alcuna modifica alla sezione ${target}.` };\n}\n\n// B. Controllo Logico basato sull'Azione e sul Soggetto\nif (action === \"ADD\" || action === \"MODIFY\") {\n    // Se aggiungiamo o modifichiamo, il nome dell'elemento DEVE esistere nel nuovo JSON\n    if (!proposedTargetStr.includes(keyId)) {\n        return { output: \"FAIL\", reason: `Fallimento: l'elemento '${keyId}' non è presente nella sezione dopo l'azione di ${action}.` };\n    }\n} else if (action === \"DELETE\") {\n    // Se eliminiamo, la stringa del JSON risultante deve essere logicamente più corta dell'originale\n    // (o quantomeno diversa, cosa già verificata nel Controllo Base)\n    if (proposedTargetStr.length >= originalTargetStr.length && proposedTargetStr.includes(keyId)) {\n        return { output: \"FAIL\", reason: `Fallimento: sembra che l'elemento '${keyId}' non sia stato rimosso correttamente.` };\n    }\n}\n\n// Se supera tutti questi controlli, la patch è perfetta e chirurgica!\nreturn { output: \"PASS\" };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        -256
+      ],
+      "id": "7cf6536f-b041-4970-ad4b-f77459916c9a",
+      "name": "JSON CONTROLLER"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Redis Get json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON patcher": {
+      "main": [
+        [
+          {
+            "node": "JSON CONTROLLER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis delete refinement history 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Redis set drafted json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get json": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis delete refinement history 2": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis set drafted json": {
+      "main": [
+        []
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "JSON patcher",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "JSON patcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "EXPLAINER",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MODIFIER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXPLAINER": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "EXPLAINER",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "MODIFIER",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "MODIFIER",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MODIFIER": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON CONTROLLER": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9e593caf-c5bd-4d18-a0e3-7f09b0b9d5bc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"
+  },
+  "id": "6MstrHh0fSDHkL5j",
+  "tags": []
+}

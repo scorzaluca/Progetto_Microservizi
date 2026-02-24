@@ -1,7 +1,3 @@
-# Loki Configuration
-#
-# Loki is a log aggregation system designed to store and query logs.
-# It's designed to be cost-effective and easy to operate.
 
 # Disable authentication for local development
 auth_enabled: false
@@ -17,7 +13,7 @@ common:
   instance_addr: 127.0.0.1
   path_prefix: /loki
   storage:
-    # Use local filesystem for storage (not for production!)
+    # Use local filesystem for storage (not for production)
     filesystem:
       chunks_directory: /loki/chunks
       rules_directory: /loki/rules
@@ -54,7 +50,7 @@ limits_config:
 
   # OTLP config: definisce quali attributi OTLP diventano label indicizzate in Loki
   # Di default, Loki promuove solo service.name → service_name
-  # Qui aggiungiamo gli attributi necessari per filtrare i log per container/stream/dominio
+  # Qui gli attributi necessari per filtrare i log per container/stream/dominio
   otlp_config:
     resource_attributes:
       attributes_config:
@@ -73,7 +69,7 @@ compactor:
   working_directory: /loki/compactor
   compaction_interval: 10m
 
-# Ruler evaluates rules and alerts (optional, not used in this demo)
+# Ruler evaluates rules and alerts (optional)
 ruler:
   storage:
     type: local

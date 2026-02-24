@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Agente DDD - Full Screen</title>
     <style>
-        /* --- STILE CSS --- */
+        /* --- STILE CSS ORIGINALE INTACT --- */
         body {
             font-family: sans-serif;
             background-color: #fff;
@@ -18,7 +18,6 @@
             overflow: hidden;
         }
 
-        /* Il contenitore occupa ora tutto lo schermo */
         #chat-box {
             width: 100%;
             height: 100vh;
@@ -27,7 +26,6 @@
             flex-direction: column;
         }
 
-        /* Header della chat - Fisso in alto */
         .chat-header {
             padding: 15px 25px;
             background-color: #0084ff;
@@ -40,10 +38,16 @@
             z-index: 10;
         }
 
-        /* L'area dove scorrono i messaggi - Prende tutto lo spazio centrale */
-        #chat-history {
+        #main-content {
+            display: flex;
+            flex-direction: row;
             flex: 1;
-            padding: 20px 10%;
+            overflow: hidden;
+        }
+
+        #chat-history {
+            flex: 7;
+            padding: 20px 25px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -51,13 +55,11 @@
             background-color: #f9f9f9;
         }
 
-        /* Stile generale per una riga di messaggio */
         .message-row {
             display: flex;
             width: 100%;
         }
 
-        /* Allineamento messaggi */
         .user-row {
             justify-content: flex-end;
         }
@@ -66,7 +68,6 @@
             justify-content: flex-start;
         }
 
-        /* La nuvoletta del messaggio standard */
         .bubble {
             max-width: 75%;
             padding: 12px 18px;
@@ -77,29 +78,21 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
-        /* NUOVO: Stile per il blocco JSON (Architettura) */
         .json-bubble {
             background-color: #2d2d2d;
-            /* Sfondo scuro editor */
             color: #f8f8f2;
-            /* Testo chiaro */
             border-radius: 10px;
             padding: 15px;
             font-family: 'Courier New', Courier, monospace;
-            /* Font codice */
             font-size: 13px;
             width: 90%;
-            /* Più largo per leggibilità */
             overflow-x: auto;
-            /* Scroll orizzontale */
             white-space: pre-wrap;
-            /* Mantiene indentazione */
             border: 1px solid #444;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             text-align: left;
         }
 
-        /* Container per gestire il bottone copia insieme al JSON */
         .json-container {
             display: flex;
             flex-direction: column;
@@ -108,7 +101,6 @@
             max-width: 90%;
         }
 
-        /* Bottone Copia JSON */
         .copy-btn {
             margin-top: 5px;
             background-color: #4CAF50;
@@ -119,7 +111,6 @@
             cursor: pointer;
             font-size: 12px;
             align-self: flex-end;
-            /* Allineato a destra del blocco codice */
             font-weight: bold;
         }
 
@@ -127,46 +118,50 @@
             background-color: #45a049;
         }
 
-        /* Colore nuvoletta UTENTE */
         .user-bubble {
             background-color: #0084ff;
             color: white;
             border-bottom-right-radius: 5px;
         }
 
-        /* Colore nuvoletta AI */
         .ai-bubble {
             background-color: #e4e6eb;
             color: black;
             border-bottom-left-radius: 5px;
         }
 
-        /* Area di input in basso */
         .input-area {
-            padding: 20px 10%;
-            border-top: 1px solid #ddd;
+            flex: 3;
+            padding: 20px;
+            border-top: none;
+            border-left: 1px solid #ddd;
             display: flex;
+            flex-direction: column;
             gap: 15px;
             background-color: #fff;
         }
 
         #messaggio {
             flex: 1;
-            padding: 12px 20px;
+            padding: 15px;
             border: 1px solid #ddd;
-            border-radius: 30px;
+            border-radius: 15px;
             outline: none;
             font-size: 16px;
+            font-family: inherit;
+            resize: none;
         }
 
         button#send-btn {
-            padding: 10px 25px;
+            padding: 15px 25px;
+            width: 100%;
             background-color: #0084ff;
             color: white;
             border: none;
             border-radius: 30px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 16px;
             transition: background 0.2s;
         }
 
@@ -176,6 +171,12 @@
 
         button#send-btn:disabled {
             background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #messaggio:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
         }
 
         .ai-label {
@@ -186,13 +187,21 @@
             font-weight: bold;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
+            #main-content {
+                flex-direction: column;
+            }
 
-            #chat-history,
+            #chat-history {
+                flex: 1;
+                padding: 20px 15px;
+            }
+
             .input-area {
-                padding-left: 15px;
-                padding-right: 15px;
+                flex: none;
+                height: 150px;
+                border-left: none;
+                border-top: 1px solid #ddd;
             }
 
             .bubble {
@@ -204,20 +213,15 @@
             }
         }
 
-
-        /* --- ANIMAZIONE CARICAMENTO (Typing Indicator) --- */
+        /* --- CLASSI DI CARICAMENTO E DRAFT --- */
         .typing-indicator {
             display: flex;
             align-items: center;
-            column-gap: 6px;
-            padding: 15px 20px;
+            gap: 5px;
+            padding: 10px 15px;
             background-color: #e4e6eb;
-            /* Stesso grigio dei messaggi AI */
             border-radius: 20px;
-            border-bottom-left-radius: 5px;
             width: fit-content;
-            margin-bottom: 15px;
-            /* Spazio sotto */
         }
 
         .dot {
@@ -225,35 +229,257 @@
             height: 8px;
             background-color: #90949c;
             border-radius: 50%;
-            animation: blink 1.4s infinite both;
+            animation: bounce 1.4s infinite ease-in-out both;
         }
 
         .dot:nth-child(1) {
-            animation-delay: 0s;
+            animation-delay: -0.32s;
         }
 
         .dot:nth-child(2) {
-            animation-delay: 0.2s;
+            animation-delay: -0.16s;
         }
 
-        .dot:nth-child(3) {
-            animation-delay: 0.4s;
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
         }
 
-        @keyframes blink {
+        .progress-container {
+            width: 250px;
+            background-color: #e4e6eb;
+            border-radius: 10px;
+            margin-top: 10px;
+            margin-left: 10px;
+            overflow: hidden;
+            height: 8px;
+            align-self: flex-start;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #0084ff;
+            transition: width 15s linear;
+        }
+
+        .draft-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .btn-confirm {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background-color: #45a049;
+        }
+
+        .btn-reject {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background-color: #da190b;
+        }
+
+        .btn-yes {
+            background-color: #0084ff;
+            color: white;
+        }
+
+        .btn-yes:hover {
+            background-color: #006bcf;
+        }
+
+        .btn-no {
+            background-color: #90949c;
+            color: white;
+        }
+
+        .btn-no:hover {
+            background-color: #6d7075;
+        }
+
+        /* Nuovi colori per i bottoni Inline di scelta azione */
+        .btn-explain {
+            background-color: #0084ff;
+            color: white;
+        }
+
+        .btn-explain:hover {
+            background-color: #006bcf;
+        }
+
+        .btn-modify {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .btn-modify:hover {
+            background-color: #e68a00;
+        }
+
+        .markdown-bubble {
+            max-width: 90%;
+            background-color: #f8faff;
+            border: 1px solid #cce0ff;
+            border-left: 5px solid #0084ff;
+            padding: 20px 25px;
+            font-family: inherit;
+        }
+
+        .markdown-bubble h1 {
+            font-size: 20px;
+            color: #0084ff;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+
+        .markdown-bubble h2 {
+            font-size: 18px;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .markdown-bubble ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+        .markdown-bubble li {
+            margin-bottom: 5px;
+        }
+
+        .markdown-bubble strong {
+            color: #111;
+        }
+
+        /* Animazione Fase 5: Da Destra a Sinistra */
+
+        @keyframes slideBlinkRightToLeft {
+
             0% {
-                opacity: 0.2;
+
+                opacity: 0;
+
+                transform: translateX(30px);
+
             }
 
-            20% {
+
+
+            50% {
+
                 opacity: 1;
+
+                transform: translateX(0);
+
             }
+
+
 
             100% {
-                opacity: 0.2;
+
+                opacity: 0;
+
+                transform: translateX(-30px);
+
             }
+
+        }
+
+
+
+        .anim-generating {
+
+            animation: slideBlinkRightToLeft 2s infinite ease-in-out;
+
+            color: #0084ff;
+
+            font-weight: bold;
+
+            font-style: italic;
+
+            padding: 10px 15px;
+
+            align-self: flex-start;
+
+        }
+
+
+
+        /* Animazione Refinement: Da Sinistra a Destra */
+
+        @keyframes slideBlinkLeftToRight {
+
+            0% {
+
+                opacity: 0;
+
+                transform: translateX(-30px);
+
+            }
+
+
+
+            50% {
+
+                opacity: 1;
+
+                transform: translateX(0);
+
+            }
+
+
+
+            100% {
+
+                opacity: 0;
+
+                transform: translateX(30px);
+
+            }
+
+        }
+
+
+
+        .anim-refining {
+
+            animation: slideBlinkLeftToRight 2s infinite ease-in-out;
+
+            color: #ff9800;
+
+            /* Un colore arancione per distinguerlo */
+
+            font-weight: bold;
+
+            font-style: italic;
+
+            padding: 10px 15px;
+
+            align-self: flex-start;
+
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -267,11 +493,14 @@
             </button>
         </div>
 
-        <div id="chat-history"></div>
+        <div id="main-content">
+            <div id="chat-history"></div>
 
-        <div class="input-area">
-            <input type="text" id="messaggio" placeholder="Scrivi un messaggio..." onkeypress="handleKeyPress(event)">
-            <button id="send-btn" onclick="invia()">Invia</button>
+            <div class="input-area">
+                <textarea id="messaggio" placeholder="Scrivi un messaggio..."
+                    onkeypress="handleKeyPress(event)"></textarea>
+                <button id="send-btn" onclick="invia()">Invia</button>
+            </div>
         </div>
     </div>
 
@@ -283,12 +512,21 @@
             localStorage.setItem('chat_session_id', sessionId);
         }
 
+        // Variabile globale per tracciare la modalità scelta dall'utente (discovery, explain, modify)
+        let currentMode = 'discovery';
+
         const chatHistory = document.getElementById('chat-history');
         const messageInput = document.getElementById('messaggio');
         const sendBtn = document.getElementById('send-btn');
 
-        // Funzione modificata per gestire isJson
-        function appendMessage(text, sender, isJson = false) {
+        // Funzione centralizzata per bloccare/sbloccare la casella di testo
+        function toggleInput(enable) {
+            messageInput.disabled = !enable;
+            sendBtn.disabled = !enable;
+            if (enable) messageInput.focus();
+        }
+
+        function appendMessage(text, sender, isJson = false, isDraft = false, isMarkdown = false) {
             const rowDiv = document.createElement('div');
             rowDiv.classList.add('message-row');
             rowDiv.classList.add(sender === 'user' ? 'user-row' : 'ai-row');
@@ -299,38 +537,35 @@
 
             if (sender === 'ai') {
                 contentDiv.style.alignItems = 'flex-start';
-                // Se è JSON, usiamo la classe container speciale
-                if (isJson) {
+                if (isJson || isMarkdown) {
                     contentDiv.classList.add('json-container');
                 }
+            } else {
+                contentDiv.style.alignItems = 'flex-end';
             }
 
             if (sender === 'ai') {
                 const label = document.createElement('div');
                 label.classList.add('ai-label');
-                // Cambia etichetta se è un design architetturale
-                label.innerText = isJson ? 'Agente DDD (Architettura Proposta)' : 'Agente DDD';
+                label.innerText = isJson
+                    ? (isDraft ? 'Agente Modifier (Bozza Modifica)' : 'Architettura Consolidata')
+                    : (isMarkdown ? 'Documento Architetturale' : 'Agente DDD');
                 contentDiv.appendChild(label);
             }
 
             const bubbleDiv = document.createElement('div');
 
             if (isJson) {
-                // --- MODALITÀ JSON ---
                 bubbleDiv.classList.add('json-bubble');
-
-                // Formattazione (Pretty Print)
                 let jsonString = "";
                 try {
-                    // Se arriva come stringa, parsalo poi stringificalo per indentare
                     const obj = typeof text === 'string' ? JSON.parse(text) : text;
                     jsonString = JSON.stringify(obj, null, 2);
                 } catch (e) {
-                    jsonString = text; // Fallback
+                    jsonString = text;
                 }
                 bubbleDiv.innerText = jsonString;
 
-                // Aggiungiamo il bottone Copia
                 const copyBtn = document.createElement('button');
                 copyBtn.classList.add('copy-btn');
                 copyBtn.innerText = "Copia JSON";
@@ -340,12 +575,19 @@
                     setTimeout(() => copyBtn.innerText = "Copia JSON", 2000);
                 };
 
-                // Aggiungiamo bolla e bottone
                 contentDiv.appendChild(bubbleDiv);
                 contentDiv.appendChild(copyBtn);
 
+                if (isDraft) {
+                    const draftActionDiv = createDraftButtonsContainer();
+                    contentDiv.appendChild(draftActionDiv);
+                }
+
+            } else if (isMarkdown) {
+                bubbleDiv.classList.add('bubble', 'ai-bubble', 'markdown-bubble');
+                bubbleDiv.innerHTML = marked.parse(text);
+                contentDiv.appendChild(bubbleDiv);
             } else {
-                // --- MODALITÀ TESTO STANDARD ---
                 bubbleDiv.classList.add('bubble');
                 bubbleDiv.classList.add(sender === 'user' ? 'user-bubble' : 'ai-bubble');
                 bubbleDiv.innerText = text;
@@ -354,12 +596,14 @@
 
             rowDiv.appendChild(contentDiv);
             chatHistory.appendChild(rowDiv);
-
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
         function handleKeyPress(event) {
-            if (event.key === 'Enter') invia();
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                invia();
+            }
         }
 
         function resetChat() {
@@ -369,86 +613,345 @@
             }
         }
 
+        // --- I NUOVI BOTTONI INLINE (SPIEGAZIONE / MODIFICA) ---
+        function promptModeSelection() {
+            // Blocchiamo l'input: l'utente DEVE scegliere cliccando sui bottoni
+            toggleInput(false);
+            messageInput.placeholder = "Seleziona un'azione dalla chat prima di scrivere...";
 
-        // Funzione per mostrare i puntini
-        function showLoading() {
             const rowDiv = document.createElement('div');
             rowDiv.classList.add('message-row', 'ai-row');
-            rowDiv.id = 'loading-bubble'; // ID per trovarlo e cancellarlo dopo
 
             const contentDiv = document.createElement('div');
+            contentDiv.style.display = 'flex';
+            contentDiv.style.flexDirection = 'column';
+            contentDiv.style.alignItems = 'flex-start';
 
-            // Creiamo la bolla animata
-            const bubble = document.createElement('div');
-            bubble.classList.add('typing-indicator');
+            const container = document.createElement('div');
+            container.style.marginTop = '10px';
+            container.style.display = 'flex';
+            container.style.gap = '10px';
 
-            // I tre pallini
-            bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+            const btnExplain = document.createElement('button');
+            btnExplain.innerText = 'Chiedi Spiegazione';
+            btnExplain.classList.add('draft-btn', 'btn-explain');
+            btnExplain.onclick = () => activateMode('explain', rowDiv);
 
-            contentDiv.appendChild(bubble);
+            const btnModify = document.createElement('button');
+            btnModify.innerText = 'Richiedi Modifica';
+            btnModify.classList.add('draft-btn', 'btn-modify');
+            btnModify.onclick = () => activateMode('modify', rowDiv);
+
+            container.appendChild(btnExplain);
+            container.appendChild(btnModify);
+            contentDiv.appendChild(container);
+            rowDiv.appendChild(contentDiv);
+
+            chatHistory.appendChild(rowDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function activateMode(mode, buttonsElement) {
+            buttonsElement.remove(); // Rimuove i pulsanti appena cliccati
+            currentMode = mode; // Imposta lo stato globale
+
+            if (mode === 'explain') {
+                appendMessage("Hai selezionato: 'Chiedi Spiegazione'. Sull'architettura attuale, cosa vuoi sapere?", 'ai');
+                messageInput.placeholder = "Scrivi la tua domanda...";
+            } else if (mode === 'modify') {
+                appendMessage("Hai selezionato: 'Richiedi Modifica'. Agirò come un chirurgo, dimmi cosa vuoi aggiungere, modificare o eliminare.", 'ai');
+                messageInput.placeholder = "Descrivi la modifica strutturale che desideri...";
+            }
+
+            // Sblocchiamo l'input ora che la scelta è stata fatta
+            toggleInput(true);
+        }
+
+        // --- LOGICA BOTTONI DRAFT (SAFE-LOCK) ---
+        function createDraftButtonsContainer() {
+            const container = document.createElement('div');
+            container.style.marginTop = '15px';
+            container.style.display = 'flex';
+            container.style.gap = '10px';
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.innerText = 'Conferma Modifica';
+            btnConfirm.classList.add('draft-btn', 'btn-confirm');
+            btnConfirm.onclick = () => promptDoubleCheck('conferma', container);
+
+            const btnReject = document.createElement('button');
+            btnReject.innerText = 'Rifiuta Modifica';
+            btnReject.classList.add('draft-btn', 'btn-reject');
+            btnReject.onclick = () => promptDoubleCheck('rifiuta', container);
+
+            container.appendChild(btnConfirm);
+            container.appendChild(btnReject);
+            return container;
+        }
+
+        function promptDoubleCheck(actionType, originalButtons) {
+            originalButtons.style.display = 'none';
+
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('message-row', 'ai-row');
+
+            const contentDiv = document.createElement('div');
+            contentDiv.style.display = 'flex';
+            contentDiv.style.flexDirection = 'column';
+            contentDiv.style.alignItems = 'flex-start';
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('bubble', 'ai-bubble');
+
+            if (actionType === 'conferma') {
+                bubbleDiv.innerText = "Sei sicuro che vuoi che questa proposta diventi l'architettura attuale?";
+            } else {
+                bubbleDiv.innerText = "Mi dispiace non essere stato d'aiuto. Attenzione: se confermi il rifiuto, questa intera proposta andrà persa. Se c'è solo un piccolo errore, ti consiglio di cliccare 'No', accettare la proposta e chiedermi di fare una piccola modifica nel prossimo messaggio. Sei sicuro di voler annullare tutto?";
+            }
+
+            const btnRow = document.createElement('div');
+            btnRow.style.marginTop = '10px';
+            btnRow.style.display = 'flex';
+            btnRow.style.gap = '10px';
+
+            const btnYes = document.createElement('button');
+            btnYes.innerText = 'Sì';
+            btnYes.classList.add('draft-btn', 'btn-yes');
+            btnYes.onclick = () => submitDraftDecision(actionType, rowDiv);
+
+            const btnNo = document.createElement('button');
+            btnNo.innerText = 'No';
+            btnNo.classList.add('draft-btn', 'btn-no');
+            btnNo.onclick = () => {
+                rowDiv.remove();
+                originalButtons.style.display = 'flex';
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            };
+
+            btnRow.appendChild(btnYes);
+            btnRow.appendChild(btnNo);
+
+            contentDiv.appendChild(bubbleDiv);
+            contentDiv.appendChild(btnRow);
+            rowDiv.appendChild(contentDiv);
+
+            chatHistory.appendChild(rowDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        async function submitDraftDecision(actionType, promptElement) {
+            promptElement.remove();
+            showLoading();
+            // Assicuriamoci che l'input sia bloccato mentre processiamo la decisione
+            toggleInput(false);
+
+            try {
+                const response = await fetch('http://localhost:5678/webhook/draft-decision-locale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: actionType,
+                        sessionId: sessionId
+                    })
+                });
+
+                hideLoading();
+
+                if (actionType === 'conferma') {
+                    appendMessage("Ottimo! L'architettura è stata aggiornata.", 'ai');
+                } else {
+                    appendMessage("Proposta scartata e cestinata. Torniamo all'architettura precedente.", 'ai');
+                }
+
+                // Dopo aver concluso la modifica, riproponiamo la scelta per il prossimo passo
+                promptModeSelection();
+
+            } catch (e) {
+                console.error("Errore decision draft:", e);
+                hideLoading();
+                appendMessage("Errore durante la comunicazione della tua scelta al server.", 'ai');
+                toggleInput(true);
+            }
+        }
+
+        function showLoading() {
+            hideLoading();
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('message-row', 'ai-row');
+            rowDiv.id = 'loading-bubble';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            `;
+
             rowDiv.appendChild(contentDiv);
             chatHistory.appendChild(rowDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // Funzione per nascondere i puntini
         function hideLoading() {
             const loader = document.getElementById('loading-bubble');
-            if (loader) {
-                loader.remove();
-            }
+            if (loader) loader.remove();
         }
 
         async function invia() {
             const msg = messageInput.value;
             if (!msg.trim()) return;
 
-            // 1. Mostra messaggio utente
-            appendMessage(msg, 'user');
+            // Aggiungo prefisso visivo per l'utente, così si ricorda in che modalità si trova
+            const prefix = currentMode === 'modify' ? "[Modifica]: " : (currentMode === 'explain' ? "[Spiegazione]: " : "");
+            appendMessage(prefix + msg, 'user');
             messageInput.value = '';
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
 
-            // 2. MOSTRA IL CARICAMENTO
+            // Blocco immediato input mentre n8n lavora
+            toggleInput(false);
             showLoading();
 
             try {
-                const response = await fetch('http://localhost:5678/webhook-test/chat', {
+                const response = await fetch('http://localhost:5678/webhook/chat-locale', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: msg,
-                        sessionId: sessionId
+                        sessionId: sessionId,
+                        action: currentMode // Questo viene letto dallo Switch2 in n8n
                     })
                 });
 
                 const data = await response.json();
-
-                // 3. NASCONDI IL CARICAMENTO (Risposta arrivata!)
                 hideLoading();
 
-                // Gestione output testo
-                if (data.output) {
-                    let testoDisplay = typeof data.output === 'string'
-                        ? data.output.replace(/^[\s_]+|[\s_]+$/g, '')
-                        : JSON.stringify(data.output);
-                    appendMessage(testoDisplay, 'ai', false);
-                }
+                if (data.status === 'generating') {
+                    if (data.agent_message) appendMessage(data.agent_message, 'ai', false);
 
-                // Gestione output JSON Architettura
-                if (data.architecture_json) {
-                    appendMessage(data.architecture_json, 'ai', true);
+                    // Creiamo l'elemento animato invece del messaggio e della barra
+                    const animRow = document.createElement('div');
+                    animRow.classList.add('message-row', 'ai-row');
+                    animRow.id = 'status-anim-container'; // ID unico per rimuoverlo dopo
+
+                    const animText = document.createElement('div');
+                    animText.classList.add('anim-generating');
+                    animText.innerText = "Generazione architettura in corso...";
+
+                    animRow.appendChild(animText);
+                    chatHistory.appendChild(animRow);
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                    avviaPolling('generating');
+                }
+                else if (data.status === 'refining') {
+                    if (data.agent_message) appendMessage(data.agent_message, 'ai', false);
+                    appendMessage("Provando a modificare l'architettura...", 'ai', false);
+
+                    const progressRow = document.createElement('div');
+                    progressRow.classList.add('message-row', 'ai-row');
+                    progressRow.id = 'fake-progress-row-draft';
+
+                    const progressContainer = document.createElement('div');
+                    progressContainer.classList.add('progress-container');
+
+                    const progressBar = document.createElement('div');
+                    progressBar.classList.add('progress-bar-fill');
+                    progressBar.style.transition = "width 30s linear";
+
+                    progressContainer.appendChild(progressBar);
+                    progressRow.appendChild(progressContainer);
+                    chatHistory.appendChild(progressRow);
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                    setTimeout(() => { progressBar.style.width = '95%'; }, 50);
+                    avviaPolling('refining');
+                }
+                else {
+                    // FLUSSO NORMALE (es. l'Explainer ha risposto o il Modifier ha rifiutato la richiesta)
+                    if (data.output) {
+                        let testoDisplay = typeof data.output === 'string'
+                            ? data.output.replace(/^[\s_]+|[\s_]+$/g, '')
+                            : JSON.stringify(data.output);
+                        appendMessage(testoDisplay, 'ai', false);
+                    }
+
+                    // Poiché siamo nella fase di refinement (explain/modify), chiediamo sempre "Cosa vuoi fare ora?"
+                    if (currentMode === 'explain' || currentMode === 'modify') {
+                        promptModeSelection();
+                    } else {
+                        // Se fossimo in Discovery, sblocchiamo normalmente
+                        toggleInput(true);
+                    }
                 }
 
             } catch (error) {
                 console.error("Errore:", error);
-                hideLoading(); // Nascondi anche in caso di errore
+                hideLoading();
                 appendMessage("Errore di comunicazione con il server.", 'ai');
-            } finally {
-                messageInput.disabled = false;
-                sendBtn.disabled = false;
-                messageInput.focus();
+                toggleInput(true);
             }
+        }
+
+        // --- POLLING ---
+        function avviaPolling(tipoOperazione) {
+            const pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`http://localhost:5678/webhook/check-status-locale?sessionId=${sessionId}`);
+                    const checkData = await res.json();
+
+                    if (tipoOperazione === 'generating' && checkData.discovery_json) {
+                        clearInterval(pollingInterval);
+
+                        // Rimuoviamo la scritta animata invece della barra
+                        const animElement = document.getElementById('status-anim-container');
+                        if (animElement) animElement.remove();
+
+                        const parsedData = JSON.parse(checkData.discovery_json);
+
+                        if (parsedData.output) {
+                            let testoDisplay = typeof parsedData.output === 'string'
+                                ? parsedData.output.replace(/^[\s_]+|[\s_]+$/g, '')
+                                : JSON.stringify(parsedData.output);
+                            appendMessage(testoDisplay, 'ai', false, false, true);
+                        }
+
+                        if (parsedData.architecture_json) {
+                            appendMessage(parsedData.architecture_json, 'ai', true);
+                        }
+
+                        appendMessage("Spero che questa architettura faccia al caso tuo! Se hai bisogno di modifiche o chiarimenti, chiedi pure.", 'ai', false);
+
+                        promptModeSelection();
+                    }
+                    else if (tipoOperazione === 'refining' && checkData.draft_json) {
+                        clearInterval(pollingInterval);
+                        const pRowDraft = document.getElementById('fake-progress-row-draft');
+                        if (pRowDraft) pRowDraft.remove();
+
+                        const parsedData = JSON.parse(checkData.draft_json);
+
+                        if (parsedData.architecture_json) {
+                            appendMessage(parsedData.architecture_json, 'ai', true, true);
+                        }
+                        appendMessage("Ecco la mia proposta di modifica. Controllala e decidi se confermarla o rifiutarla.", 'ai', false);
+                        // L'input resta bloccato in attesa della conferma/rifiuto (bottoni draft)
+                    }
+                    else if (tipoOperazione === 'refining' && checkData.draft_status === 'failed') {
+                        clearInterval(pollingInterval);
+                        const pRowDraft = document.getElementById('fake-progress-row-draft');
+                        if (pRowDraft) pRowDraft.remove();
+
+                        appendMessage("Ops! I controlli di sicurezza interni hanno bloccato questa modifica perché comprometteva la struttura del progetto.", 'ai', false);
+
+                        // Poiché la bozza è fallita, diamo di nuovo all'utente la possibilità di scegliere
+                        promptModeSelection();
+                    }
+
+                } catch (err) {
+                    console.error("Errore Polling:", err);
+                }
+            }, 3000);
         }
     </script>
 </body>

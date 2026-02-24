@@ -1,0 +1,318 @@
+{
+  "name": "DRAFT DECISION WORKFLOW_locale",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "draft-decision-locale",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "427d5e7f-55ff-4232-b368-9427b693e746",
+      "name": "Webhook",
+      "webhookId": "891539d1-cb8a-4ca0-8624-a0a182d04e8f"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "conferma",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "835cf514-674d-45fe-a895-b4ae2cf5a50e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a35e799a-a245-44e0-9a1b-f75e48da79c2",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "rifiuta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "884a2d1c-5f01-404e-9a11-6486f0cd8092",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"ok\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "2fea55ba-294a-4840-8fdf-4d1045aa62d1",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=chat_history_refinement:{{ $json.body.sessionId }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        624,
+        96
+      ],
+      "id": "b63f4606-aa85-4151-84da-a6a6383c6c53",
+      "name": "Redis discard refinement chat",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=draft_json:{{ $json.body.sessionId }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        416,
+        96
+      ],
+      "id": "6f74f60f-9a70-4c15-939f-eaebeb91d673",
+      "name": "Redis discard drafted json",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=discovery_json:{{ $('Webhook').item.json.body.sessionId }}",
+        "value": "={{ $json.value }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "57b089f2-f949-431f-ae83-753a5ab9131c",
+      "name": "Redis Confirm drafted json",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=draft_json:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "c6d71b17-61b5-4b8e-91e3-80c8e2eaed10",
+      "name": "Redis Get drafted json",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=chat_history_refinement:{{ $('Webhook').item.json.body.sessionId }}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "5b513d61-00af-4e6d-a7b7-c383ddc047dd",
+      "name": "Redis_discard_refinement_chat",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"ok\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        832,
+        96
+      ],
+      "id": "c9634e6d-516a-484b-ba82-6fc9d270badb",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Redis Get drafted json",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis discard drafted json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis discard drafted json": {
+      "main": [
+        [
+          {
+            "node": "Redis discard refinement chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Confirm drafted json": {
+      "main": [
+        [
+          {
+            "node": "Redis_discard_refinement_chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get drafted json": {
+      "main": [
+        [
+          {
+            "node": "Redis Confirm drafted json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis_discard_refinement_chat": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis discard refinement chat": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "69e8baca-b518-48a3-ad35-3d35c70d6284",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"
+  },
+  "id": "r7hgHJyK5CliQw3N",
+  "tags": []
+}

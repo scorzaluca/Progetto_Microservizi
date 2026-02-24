@@ -18,7 +18,7 @@ receivers:
 
   # Receiver Creator: crea DINAMICAMENTE un filelog receiver per ogni container
   # scoperto dal docker_observer. Ogni receiver ha il NOME del container come
-  # resource attribute → diventa label in Loki → leggibile in Grafana!
+  # resource attribute → diventa label in Loki → leggibile in Grafana
   receiver_creator/docker:
     watch_observers: [docker_observer]
     receivers:
@@ -55,7 +55,7 @@ receivers:
           container.image.name: '`image`'
 
   # Prometheus receiver: scraping metriche da Redis Exporter
-  # Nota: Ollama NON espone un endpoint /metrics Prometheus nativo,
+  # Ollama NON espone un endpoint /metrics Prometheus nativo,
   # quindi lo scraping è limitato al Redis Exporter
   prometheus:
     config:
@@ -72,7 +72,7 @@ processors:
     send_batch_size: 100
 
   # GroupByAttrs: promuove attributi dei log a RESOURCE attributes
-  # Fondamentale perché Loki usa solo i resource attributes come label
+  # Loki usa solo i resource attributes come label
   groupbyattrs:
     keys:
       - log.iostream

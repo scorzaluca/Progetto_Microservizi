@@ -1,7 +1,3 @@
-# Grafana Dashboard Provisioning
-#
-# This tells Grafana to automatically load dashboard JSON files
-# from the specified directory.
 
 apiVersion: 1
 

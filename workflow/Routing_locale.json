@@ -1,0 +1,373 @@
+{
+  "name": "Routing_locale",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-locale",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "54216fae-e2a4-4893-84b1-285502a5444f",
+      "name": "Webhook",
+      "webhookId": "d3bb6f5d-e064-44f3-bebf-03ceabffe12f"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "check_json_exists",
+        "key": "=discovery_json:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "110e3b19-d0be-457d-ba91-c6e017a67984",
+      "name": "Redis Get",
+      "alwaysOutputData": true,
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "663303c7-052b-4971-8f46-aa8aa474b492",
+              "leftValue": "={{ $json.check_json_exists }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "e716b110-5612-41d8-aa0d-3585a65b1888",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "yMOaMvAxy9FmdBXG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/yMOaMvAxy9FmdBXG",
+          "cachedResultName": "DISCOVERY WORKFLOW_locale"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={{ $('Webhook').item.json.body.message }}",
+            "sessionid": "={{ $('Webhook').item.json.body.sessionId }}"
+          },
+          "matchingColumns": [
+            "message"
+          ],
+          "schema": [
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sessionid",
+              "displayName": "sessionid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        -160
+      ],
+      "id": "fee05f35-f093-4068-8b39-33b2b289a584",
+      "name": "Call 'DISCOVERY WORKFLOW_locale'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6MstrHh0fSDHkL5j",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/6MstrHh0fSDHkL5j",
+          "cachedResultName": "REFINEMENT WORKFLOW_locale"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "message": "={{ $('Webhook').item.json.body.message }}",
+            "sessionid": "={{ $('Webhook').item.json.body.sessionId }}",
+            "action": "={{ $('Webhook').item.json.body.action }}"
+          },
+          "matchingColumns": [
+            "message"
+          ],
+          "schema": [
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sessionid",
+              "displayName": "sessionid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        112
+      ],
+      "id": "b025ca58-4540-453e-a0ac-60fc81ad8d4f",
+      "name": "Call 'REFINEMENT WORKFLOW_locale'"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "phase",
+        "key": "=discovery_phase:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -144
+      ],
+      "id": "34cf3923-ee43-4115-b6aa-8d64527a1f19",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3f4c8601-cb13-419a-982f-3b395641ad32",
+              "leftValue": "={{ $json.phase}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        848,
+        -144
+      ],
+      "id": "fe2f4d29-3197-4671-beaa-62f3638bb9e0",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=discovery_phase:{{ $('Webhook').item.json.body.sessionId }}",
+        "value": "1"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        0
+      ],
+      "id": "1b4fe70b-f989-42fd-9488-5633100ada27",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Redis Get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'REFINEMENT WORKFLOW_locale'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Call 'DISCOVERY WORKFLOW_locale'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "Call 'DISCOVERY WORKFLOW_locale'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "240a7551-54b9-48f1-8f04-5c966e1ecc65",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"
+  },
+  "id": "DdM9ZC4uV20eN9Zq",
+  "tags": []
+}

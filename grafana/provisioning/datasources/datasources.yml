@@ -1,8 +1,3 @@
-# Grafana Datasource Configuration
-#
-# This file tells Grafana where to find your data sources (Loki and Tempo).
-# Provisioning means these datasources are automatically configured on startup.
-
 apiVersion: 1
 
 datasources:
