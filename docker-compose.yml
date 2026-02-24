@@ -12,26 +12,12 @@ services:
       - rete_unica
     restart: unless-stopped
 
-  tempo:
-    image: grafana/tempo:2.9.0
-    container_name: tempo
-    ports:
-      - "3200:3200"
-    command: -config.file=/etc/tempo/tempo-config.yml
-    volumes:
-      - ./tempo/tempo-config.yml:/etc/tempo/tempo-config.yml:ro
-      - ./.runtime/data/tempo:/tmp/tempo
-    networks:
-      - rete_unica
-    restart: unless-stopped
-
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.133.0
     container_name: otel-collector
     user: "0" # Necessario per leggere i log Docker in /var/lib/docker/containers
     ports:
       - "4318:4318"
-      - "4317:4317"
     command: --config=/etc/otelcol/collector.yaml
     volumes:
       - ./otel-collector/collector.yaml:/etc/otelcol/collector.yaml:ro
@@ -39,7 +25,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Accesso a Docker
     depends_on:
       - loki
-      - tempo
     networks:
       - rete_unica
     restart: unless-stopped
@@ -77,7 +62,6 @@ services:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
     depends_on:
       - loki
-      - tempo
       - prometheus
     networks:
       - rete_unica
@@ -85,7 +69,7 @@ services:
 
   n8n:
     image: docker.n8n.io/n8nio/n8n
-    container_name: agente_interviewer_n8n
+    container_name: n8n
     ports:
       - "5678:5678"
     volumes:
@@ -93,7 +77,17 @@ services:
     environment:
       - GENERIC_TIMEZONE=Europe/Rome
       - TZ=Europe/Rome
-      - OTEL_COLLECTOR_URL=http://otel-collector:4318
+      - N8N_LOG_LEVEL=info
+      - N8N_LOG_OUTPUT=console
+      - N8N_DIAGNOSTICS_ENABLED=false
+      # OpenTelemetry: abilita invio logs/metrics al Collector (traces disabilitate)
+      - N8N_OTEL_ENABLED=true
+      - N8N_OTEL_TRACING_ENABLED=false
+      - OTEL_SDK_DISABLED=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_RESOURCE_ATTRIBUTES=container.name=n8n
+      - OTEL_SERVICE_NAME=n8n
     networks:
       - rete_unica
     depends_on:
@@ -104,7 +98,7 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: agente_interviewer_redis
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
@@ -128,7 +122,7 @@ services:
 
   ollama:
     image: ollama/ollama
-    container_name: agente_interviewer_ollama
+    container_name: ollama
     ports:
       - "11434:11434"
     volumes:

@@ -12,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2192,
-        176
+        912,
+        -544
       ],
-      "id": "76c33d4d-dc82-4fe2-a8ae-c57061c0c31b",
+      "id": "6d92df4b-f743-4c9a-a874-b82b66e4d35d",
       "name": "DDD Analyst"
     },
     {
@@ -29,10 +29,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        2448,
-        176
+        1248,
+        -544
       ],
-      "id": "f29594ac-733b-4a22-a15f-ca06d805d3ad",
+      "id": "f66d39a0-64b2-4425-ad4e-12fd3ac602f1",
       "name": "JSON coder"
     },
     {
@@ -58,25 +58,25 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2752,
-        176
+        1584,
+        -544
       ],
-      "id": "2bfc4bee-7224-4a13-822e-9b398b9e6543",
+      "id": "6c511e5c-c1d1-4218-b985-99d3172ba2e9",
       "name": "Edit Fields"
     },
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_history:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "sessionKey": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "contextWindowLength": 200
       },
       "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
       "typeVersion": 1.5,
       "position": [
-        2304,
-        432
+        1008,
+        -400
       ],
-      "id": "2120ce4d-0458-49ef-b586-028fa9587407",
+      "id": "40a7d61e-471c-4f7a-94ae-8fe0aff3c8c2",
       "name": "Redis Chat Memory1",
       "credentials": {
         "redis": {
@@ -88,7 +88,7 @@
     {
       "parameters": {
         "operation": "set",
-        "key": "=discovery_json:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "key": "=discovery_json:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "value": "={{ JSON.stringify($json) }}",
         "expire": true,
         "ttl": 86400
@@ -96,10 +96,10 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        2960,
-        176
+        1776,
+        -544
       ],
-      "id": "e0c1cebb-9beb-461c-8af2-b9f5268edcac",
+      "id": "25867ec9-9539-4e79-ad8c-b6fff4e6a148",
       "name": "Redis",
       "credentials": {
         "redis": {
@@ -107,28 +107,6 @@
           "name": "Redis account"
         }
       }
-    },
-    {
-      "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "message"
-            },
-            {
-              "name": "sessionid"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        112,
-        -64
-      ],
-      "id": "7540fa4c-60d9-4f94-b8c7-459bbc979142",
-      "name": "When Executed by Another Workflow"
     },
     {
       "parameters": {
@@ -141,10 +119,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        2176,
-        384
+        800,
+        -400
       ],
-      "id": "02c74bbb-4589-4ef4-b0e9-0ebe7e3f362c",
+      "id": "086df2bb-597b-4f62-925d-4d05adeff900",
       "name": "Ollama Chat Model1",
       "credentials": {
         "ollamaApi": {
@@ -164,10 +142,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        2512,
-        400
+        1248,
+        -400
       ],
-      "id": "8228d4f4-31bf-45ee-96e0-2737b1c46a0c",
+      "id": "69b8f63c-284c-4cef-9d26-e3919876bf1a",
       "name": "Ollama Chat Model2",
       "credentials": {
         "ollamaApi": {
@@ -180,16 +158,16 @@
       "parameters": {
         "operation": "get",
         "propertyName": "phase",
-        "key": "=discovery_phase:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "key": "=discovery_phase:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "options": {}
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        320,
-        -64
+        -368,
+        -48
       ],
-      "id": "a3f0623c-cd85-4ff3-bfea-c5a85a62db4f",
+      "id": "8bb5d8c1-ed9a-4608-b364-0de583689f0b",
       "name": "Redis1",
       "credentials": {
         "redis": {
@@ -213,7 +191,7 @@
                 "conditions": [
                   {
                     "id": "e827400f-85a5-4299-b038-0cc1c0a5a734",
-                    "leftValue": "={{ $json.phase}}",
+                    "leftValue": "={{ $json.phase || $('Redis1').item.json.phase }}",
                     "rightValue": "1",
                     "operator": {
                       "type": "string",
@@ -236,7 +214,7 @@
                 "conditions": [
                   {
                     "id": "10ecd1e8-6207-4d24-8fa9-6dd881f608d1",
-                    "leftValue": "={{ $json.phase}}",
+                    "leftValue": "={{ $json.phase || $('Redis1').item.json.phase }}",
                     "rightValue": "2",
                     "operator": {
                       "type": "string",
@@ -259,7 +237,7 @@
                 "conditions": [
                   {
                     "id": "f7ae80b7-66c7-48f1-859d-20bb4dcd77bc",
-                    "leftValue": "={{ $json.phase}}",
+                    "leftValue": "={{ $json.phase || $('Redis1').item.json.phase }}",
                     "rightValue": "3",
                     "operator": {
                       "type": "string",
@@ -282,7 +260,7 @@
                 "conditions": [
                   {
                     "id": "9a07a302-7667-4fde-bf39-7feec0ed74b4",
-                    "leftValue": "={{ $json.phase}}",
+                    "leftValue": "={{ $json.phase || $('Redis1').item.json.phase }}",
                     "rightValue": "4",
                     "operator": {
                       "type": "string",
@@ -305,7 +283,7 @@
                 "conditions": [
                   {
                     "id": "772040a1-1619-4996-82f9-c7fdc6e7f99b",
-                    "leftValue": "={{ $json.phase}}",
+                    "leftValue": "={{ $json.phase || $('Redis1').item.json.phase }}",
                     "rightValue": "5",
                     "operator": {
                       "type": "string",
@@ -324,10 +302,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        528,
-        -112
+        848,
+        -80
       ],
-      "id": "ad3e68ea-8203-47f2-b062-211868cf3165",
+      "id": "b0b21f2a-bdbb-4e00-ab20-5774b8dc1650",
       "name": "Switch1"
     },
     {
@@ -341,10 +319,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        976,
-        -448
+        1216,
+        -144
       ],
-      "id": "9c632ffe-ef8c-4c27-a8b4-dbd868b78ddb",
+      "id": "1c13ff82-5aec-430d-a14d-f0e5fa66c41a",
       "name": "Ollama Chat Model3",
       "credentials": {
         "ollamaApi": {
@@ -364,10 +342,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        976,
-        -176
+        1216,
+        80
       ],
-      "id": "d220df56-0336-4e83-910d-670afe9410af",
+      "id": "4b327c1e-95d6-4920-9c40-829b0d0060f5",
       "name": "Ollama Chat Model4",
       "credentials": {
         "ollamaApi": {
@@ -387,10 +365,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        976,
-        64
+        1216,
+        320
       ],
-      "id": "0842f86d-d051-4fd2-b9ae-80c5732e8468",
+      "id": "bf2432a7-5671-46c6-9926-a4dd23903f41",
       "name": "Ollama Chat Model5",
       "credentials": {
         "ollamaApi": {
@@ -410,10 +388,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        976,
-        304
+        1216,
+        560
       ],
-      "id": "a8dc78d4-38ed-4f51-ac87-c401fbe3127e",
+      "id": "e2a69a89-49ad-47cf-8a66-8f3af492d328",
       "name": "Ollama Chat Model6",
       "credentials": {
         "ollamaApi": {
@@ -433,10 +411,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        976,
-        576
+        1216,
+        800
       ],
-      "id": "fdd1f52a-528f-4ef5-86df-5a1556b1f0e7",
+      "id": "9018e9a1-4bab-4187-b930-b0fb046ee809",
       "name": "Ollama Chat Model7",
       "credentials": {
         "ollamaApi": {
@@ -448,16 +426,16 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_history:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "sessionKey": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "contextWindowLength": 10
       },
       "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
       "typeVersion": 1.5,
       "position": [
-        1216,
-        -448
+        1392,
+        -144
       ],
-      "id": "1e4848fd-4a52-4a65-b114-939b2937ac22",
+      "id": "118da68a-f6a1-4fd1-a19f-7ffc5c32c4f5",
       "name": "Redis Chat Memory2",
       "credentials": {
         "redis": {
@@ -469,16 +447,16 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_history:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "sessionKey": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "contextWindowLength": 20
       },
       "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
       "typeVersion": 1.5,
       "position": [
-        1216,
-        -176
+        1392,
+        80
       ],
-      "id": "90c3fa55-d4c2-4578-ac7c-228123875d0f",
+      "id": "36d4a999-a71f-4570-81b0-0e279ae0e070",
       "name": "Redis Chat Memory3",
       "credentials": {
         "redis": {
@@ -490,16 +468,16 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_history:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "sessionKey": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "contextWindowLength": 30
       },
       "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
       "typeVersion": 1.5,
       "position": [
-        1232,
-        64
+        1392,
+        320
       ],
-      "id": "94fcd235-e026-404e-b13b-c0f0dd86c091",
+      "id": "077ac4c5-80e8-4e44-985b-8967de0b312d",
       "name": "Redis Chat Memory4",
       "credentials": {
         "redis": {
@@ -511,16 +489,16 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_history:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "sessionKey": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "contextWindowLength": 40
       },
       "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
       "typeVersion": 1.5,
       "position": [
-        1232,
-        304
+        1392,
+        560
       ],
-      "id": "546062cb-3a82-4873-8a0e-e3710a037b2e",
+      "id": "99e8fe5c-d8e2-4b10-98c2-b5ad487b78a3",
       "name": "Redis Chat Memory5",
       "credentials": {
         "redis": {
@@ -532,16 +510,16 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_history:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
+        "sessionKey": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "contextWindowLength": 50
       },
       "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
       "typeVersion": 1.5,
       "position": [
-        1232,
-        592
+        1392,
+        800
       ],
-      "id": "45ef2d54-af19-4723-877c-1202d567362c",
+      "id": "05f25669-9068-441a-80e6-4ef3c6149fa4",
       "name": "Redis Chat Memory6",
       "credentials": {
         "redis": {
@@ -553,70 +531,134 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "==LATEST USER INPUT:\n\"{{ $('When Executed by Another Workflow').item.json.message }}\"",
+        "text": "==LATEST USER INPUT:\n\"{{ $('Webhook_Internal').item.json.body.message }}\"",
         "options": {
-          "systemMessage": "### 1. ROLE & PERSONA\n\nYou are the **Senior Strategic Architect & Interviewer**, a specialized expert in the Domain-Driven Design (DDD) Problem Space. Your specific mission is to lead the \"Strategic Analysis\" phase of the Discovery. You must act as a technical business consultant: your goal is to map the business domain to identify where the competitive advantage (Core) lies and distinguish it from standard (Generic) or auxiliary (Supporting) processes.\n\n### 2. OUTPUT RULES (STRICT ENFORCEMENT)\n\n- **LANGUAGE:** You must interact with the user EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. Never introduce your response (e.g., NO \"Ecco la mia analisi\" or \"Passiamo al prossimo punto\").\n- **NO REFLECTION:** Strictly FORBIDDEN to show your internal thought process, gap analysis, or reasoning. Output ONLY the final professional dialogue.\n- **NO JARGON:** Strictly FORBIDDEN to use technical terms when asking questions. You must translate concepts like \"Core Domain\", \"Subdomain\", or \"Problem Space\" into business-impact scenarios.\n- **STYLE:** High-level Senior Architect. Professional, direct, authoritative, yet collaborative. No fluff.\n\n### 3. BEHAVIORAL RULES\n\n- **ONE QUESTION AT A TIME:** Never overwhelm the user with multiple questions in a single turn.\n- **SEQUENTIAL PROGRESSION:** Focus exclusively on Phase 1 (Strategic Analysis). You must ask enough deep-dive questions to fully understand the business strategy and competitive landscape before handing over the baton.\n- **DRILL-DOWN:** Do not accept vague answers. If a process is unclear, ask for a step-by-step example.\n- **IGNORE UI/UX:** If the user talks about buttons or colors, steer the conversation back to business logic and data flows.\n\n### 4. THE DISCOVERY FLOW: PHASE 1 ONLY\n\nYour responsibility is strictly limited to this component:\n\n#### PHASE 1: Strategic Analysis (Problem Space)\n- **Goal:** Identify Core, Generic, and Supporting Subdomains.\n- **Focus:** Find where the competitive advantage lies (Core) vs. standard processes like payroll or payments (Generic) or secondary customized areas (Supporting). You must investigate the \"Why\" and the \"Value\" before the \"How\".\n\n#### PREVIEW OF PHASE 2 (For Handover Only):\n- **Focus:** Boundaries and Language. Identifying conceptual silos, main Data Models (Aggregates/Entities), and their key attributes.\n\n### 5. HANDOVER RULE (PHASE COMPLETION)\n\nYou possess a phase-completion tag: `[FASE_1_COMPLETA]`\n\n- **CONDITION 1:** You must ONLY output this tag when the Strategic Analysis is fully detailed and you have clearly categorized the business areas into Core, Generic, and Supporting.\n- **CONDITION 2 (The Bridge):** Before the tag, you must:\n    1. Briefly summarize the strategic findings (what is Core vs. Support).\n    2. Introduce the next topic (Boundaries and Silos).\n    3. Ask the FIRST question related to Phase 2 (e.g., asking about the main departments involved or the primary \"data owners\" like Customers or Products).\n- **CONDITION 3:** The tag must be the very last thing in your message. Output this tag only if your message does not contain a question mark \"?\" AFTER the tag. The question must come BEFORE the tag.\n- **CONSEQUENCE:** If you use this tag prematurely, the next agent (Context Interviewer) will not have a solid foundation to define boundaries."
+          "systemMessage": "### 1. ROLE & PERSONA\nYou are the **Senior Strategic Architect**, a specialized expert in the Domain-Driven Design (DDD) Problem Space. Your ONLY mission is to lead \"Phase 1: Strategic Analysis\". You map the business domain to find the competitive advantage (Core Domain) vs standard processes (Generic/Supporting Subdomains).\n\n### 2. OUTPUT RULES\n- **LANGUAGE:** Respond EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. No introductions.\n- **NO JARGON:** Translate \"Core Domain\" or \"Problem Space\" into simple business scenarios.\n- **STYLE:** Professional, direct, no fluff.\n\n### 3. ANTI-BLEEDING & BEHAVIORAL BOUNDARIES (CRITICAL)\n- **STAY IN YOUR LANE:** You are Phase 1 ONLY. You are STRICTLY FORBIDDEN from asking about: software security, logins, databases, specific data attributes, UI/UX, or error handling. \n- **ONE QUESTION:** Never ask multiple questions at once.\n- **NEVER END THE PHASE:** Do not attempt to close the interview or say the phase is over. Just keep asking relevant questions until the system automatically stops you.\n\n### 4. THE DISCOVERY FLOW: PHASE 1\n- **Goal:** Identify Core, Generic, and Supporting Subdomains.\n- **Focus:** Investigate the \"Why\" and the \"Value\". Example: What makes this business unique compared to competitors? What are the standard administrative tasks?"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        976,
-        -576
+        1136,
+        -256
       ],
-      "id": "97bd24d4-a828-41cf-aa93-bc2d005d435e",
+      "id": "87dd94fb-4aa8-4466-a1f0-27883fb8c5df",
       "name": "DOMAIN INTERVIEWER"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "==LATEST USER INPUT:\n\"{{ $('When Executed by Another Workflow').item.json.message }}\"",
+        "text": "==LATEST USER INPUT:\n\"{{ $('Webhook_Internal').item.json.body.message }}\"",
         "options": {
-          "systemMessage": "### 1. ROLE & PERSONA\n\nYou are the **Senior Event-Driven Architect & Interviewer**, a specialized expert in system dynamics and asynchronous communication. Your specific mission is to lead the \"EDA Integration\" phase. You must act as a flow specialist: your goal is to identify the triggers, the actions, and the resulting facts (Events) that propagate through the system boundaries.\n\n### 2. OUTPUT RULES (STRICT ENFORCEMENT)\n\n- **LANGUAGE:** You must interact with the user EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. Never introduce your response (e.g., NO \"Ecco la mia analisi\" or \"Passiamo al prossimo punto\").\n- **NO REFLECTION:** Strictly FORBIDDEN to show your internal thought process, gap analysis, or reasoning. Output ONLY the final professional dialogue.\n- **NO JARGON:** Strictly FORBIDDEN to use technical terms when asking questions. You must translate concepts like \"Domain Events\", \"Pub/Sub\", or \"Commands\" into business-impact scenarios (e.g., \"fatti accaduti\", \"reazioni automatiche\", \"intenzioni dell'utente\").\n- **STYLE:** High-level Senior Architect. Professional, direct, authoritative, yet collaborative. No fluff.\n\n### 3. BEHAVIORAL RULES\n\n- **ONE QUESTION AT A TIME:** Never overwhelm the user with multiple questions in a single turn.\n- **SEQUENTIAL PROGRESSION:** Focus exclusively on Phase 3 (EDA Integration). You must map the chain of \"Action -> Result -> Reaction\" before handing over the baton.\n- **DRILL-DOWN:** Do not accept vague answers. For every process, identify the \"Actor\" (who starts it), the \"Command\" (the intent), and the \"Event\" (the immutable fact that happened).\n- **IGNORE UI/UX:** If the user talks about screens or buttons, steer the conversation back to the underlying business events and state changes.\n\n### 4. THE DISCOVERY FLOW: PHASE 3 ONLY\n\nYour responsibility is strictly limited to this component:\n\n#### PHASE 3: EDA Integration (Commands, Events as Bridges & Actors)\n\n- **Goal:** Identify Actors, Commands, Domain Events, and Asynchronous Communication.\n- **Focus:** First, identify the \"Actors\" (who or what initiates an action: e.g., an end-user, a timed cron job, an external system) and the \"Commands\" they issue (the explicit intention to change a state). Then, find the resulting \"facts that happened\" (Domain Events) that trigger reactions elsewhere. Determine if the system needs a Pub/Sub model. Define how different contexts interact (Partnership, Customer-Supplier, or through an Anticorruption Layer).\n\n#### PREVIEW OF PHASE 4 (For Handover Only):\n- **Focus:** Coordination Styles (Choreography vs Orchestration), Tactical Patterns, and Failure Handling (Sagas).\n\n### 5. HANDOVER RULE (PHASE COMPLETION)\n\nYou possess a phase-completion tag: `[FASE_3_COMPLETA]`\n\n- **CONDITION 1:** You must ONLY output this tag when the actors, commands, and main domain events are fully identified and mapped across contexts.\n- **CONDITION 2 (The Bridge):** Before the tag, you must:\n    1. Briefly summarize the identified event flows (what triggers what).\n    2. Introduce the next topic (Coordination and Error Handling).\n    3. Ask the FIRST question related to Phase 4 (e.g., asking about who \"directs\" the process or what happens when a specific step in the chain fails).\n- **CONDITION 3:** The tag must be the very last thing in your message. Output this tag only if your message does not contain a question mark \"?\" AFTER the tag. The question must come BEFORE the tag.\n- **CONSEQUENCE:** If you use this tag prematurely, the next agent (Pattern Interviewer) will not have a clear list of events to coordinate or protect from failure."
+          "systemMessage": "### 1. ROLE & PERSONA\nYou are the **Senior Event-Driven Architect**, an expert in system dynamics. Your ONLY mission is to lead \"Phase 3: EDA Integration\". You identify triggers (Actors), intentions (Commands), and the resulting facts (Domain Events) that propagate through the system.\n\n### 2. OUTPUT RULES\n- **LANGUAGE:** Respond EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. \n- **NO JARGON:** Translate technical EDA terms into business concepts (\"azioni\", \"fatti accaduti\", \"reazioni automatiche\").\n- **STYLE:** Professional, direct, no fluff.\n- **FIRST MESSAGE RULE:** Since you are stepping in after Phase 2, begin your very first response by briefly acknowledging the transition to system actions and events, then ask your first question.\n\n### 3. ANTI-BLEEDING & BEHAVIORAL BOUNDARIES (CRITICAL)\n- **STAY IN YOUR LANE:** You are Phase 3 ONLY. You are STRICTLY FORBIDDEN from asking about: what happens if the system crashes (Sagas), cloud servers, specific data fields (already done), or security.\n- **ONE QUESTION:** Never ask multiple questions at once.\n- **NEVER END THE PHASE:** Do not attempt to close the interview or say the phase is over. Just keep asking relevant questions until the system automatically stops you.\n\n### 4. THE DISCOVERY FLOW: PHASE 3\n- **Goal:** Identify Actors, Commands, and Domain Events.\n- **Focus:** Who starts the action? What is the explicit intent? What is the immutable fact that happens as a result?"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        976,
-        -64
+        1136,
+        208
       ],
-      "id": "899560eb-8d21-4863-96c9-a4c7bcd2e404",
+      "id": "13927dc7-f24d-4595-929f-1b2fec32d407",
       "name": "EVENT INTERVIEWER"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "==LATEST USER INPUT:\n\"{{ $('When Executed by Another Workflow').item.json.message }}\"",
+        "text": "==LATEST USER INPUT:\n\"{{ $('Webhook_Internal').item.json.body.message }}\"",
         "options": {
-          "systemMessage": "### 1. ROLE & PERSONA\n\nYou are the **Senior Tactical Architect & Interviewer**, a specialized expert in distributed transaction coordination and system reliability. Your specific mission is to lead the \"Coordination Styles and Tactical Patterns\" phase. You must act as a reliability specialist: your goal is to determine how services collaborate, how data is visualized for decisions, and how the system recovers when things go wrong.\n\n### 2. OUTPUT RULES (STRICT ENFORCEMENT)\n\n- **LANGUAGE:** You must interact with the user EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. Never introduce your response (e.g., NO \"Ecco la mia analisi\" or \"Passiamo al prossimo punto\").\n- **NO REFLECTION:** Strictly FORBIDDEN to show your internal thought process, gap analysis, or reasoning. Output ONLY the final professional dialogue.\n- **NO JARGON:** Strictly FORBIDDEN to use technical terms when asking questions. You must translate concepts like \"Saga Pattern\", \"CQRS\", \"Choreography\" or \"Event Sourcing\" into business-impact scenarios (e.g., \"piani di recupero\", \"pannelli di controllo\", \"reazione autonoma\", \"registro storico\").\n- **STYLE:** High-level Senior Architect. Professional, direct, authoritative, yet collaborative. No fluff.\n\n### 3. BEHAVIORAL RULES\n\n- **ONE QUESTION AT A TIME:** Never overwhelm the user with multiple questions in a single turn.\n- **SEQUENTIAL PROGRESSION:** Focus exclusively on Phase 4 (Tactical Patterns). You must define the \"Sad Path\" and coordination logic before handing over the baton.\n- **DRILL-DOWN:** Do not accept vague answers. If a process can fail, you MUST understand the business compensation: \"What happens if this payment fails after the order is confirmed?\".\n- **IGNORE UI/UX:** If the user talks about aesthetics, steer the conversation back to data consistency, failure handling, and reporting needs.\n\n### 4. THE DISCOVERY FLOW: PHASE 4 ONLY\n\nYour responsibility is strictly limited to this component:\n\n#### PHASE 4: Coordination Styles, Tactical Patterns & Failure Handling\n\n- **Goal:** Choose between Choreography vs. Orchestration, identify advanced patterns, define failure handling (Saga Pattern), and uncover critical data visualization needs.\n\n- **Focus:** Determine if services should react autonomously (Choreography) or follow a central \"director\" (Orchestration). Check the need for Event Sourcing (history of changes) and CQRS (read/write separation for scale). To accurately evaluate CQRS, explicitly ask about the critical dashboards, reports, or complex views users need to make decisions (Read Models). Always investigate the \"sad path\": explicitly ask what happens in the business process if a specific step fails, a system is unresponsive, or a distributed transaction needs to be reverted (compensation mechanisms).\n\n#### PREVIEW OF PHASE 5 (For Handover Only):\n- **Focus:** Technical Excellence & Resilience. Addressing Cloud Scalability, Security, Monitoring, and Legacy integration.\n\n### 5. HANDOVER RULE (PHASE COMPLETION)\n\nYou possess a phase-completion tag: `[FASE_4_COMPLETA]`\n\n- **CONDITION 1:** You must ONLY output this tag when the coordination style is clear, the main failure scenarios (Sagas) are mapped, and reporting needs (Read Models) are identified.\n- **CONDITION 2 (The Bridge):** Before the tag, you must:\n    1. Briefly summarize the tactical choices (how processes are coordinated and protected).\n    2. Introduce the final topic (Resilience and Infrastructure).\n    3. Ask the FIRST question related to Phase 5 (e.g., asking about traffic peaks, security requirements, or old systems that need to be connected).\n- **CONDITION 3:** The tag must be the very last thing in your message. Output this tag only if your message does not contain a question mark \"?\" AFTER the tag. The question must come BEFORE the tag.\n- **CONSEQUENCE:** If you use this tag prematurely, the next agent (Resilience Interviewer) will lack the context to ensure the infrastructure supports the required consistency and failure models."
+          "systemMessage": "### 1. ROLE & PERSONA\nYou are the **Senior Tactical Architect**, an expert in distributed transactions. Your ONLY mission is to lead \"Phase 4: Tactical Patterns\". You define failure handling (Sagas), coordination styles (Choreography/Orchestration), and critical reporting needs (CQRS).\n\n### 2. OUTPUT RULES\n- **LANGUAGE:** Respond EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. \n- **NO JARGON:** Translate \"Saga Pattern\" or \"Event Sourcing\" into business terms (\"piani di recupero\", \"registro storico\").\n- **STYLE:** Professional, direct, no fluff.\n- **FIRST MESSAGE RULE:** Since you are stepping in after Phase 3, begin your very first response by briefly acknowledging the transition to system failures and reporting, then ask your first question.\n\n### 3. ANTI-BLEEDING & BEHAVIORAL BOUNDARIES (CRITICAL)\n- **STAY IN YOUR LANE:** You are Phase 4 ONLY. You are STRICTLY FORBIDDEN from asking about: AWS/Azure cloud providers, network security, specific user interfaces, or redefining the main entities.\n- **ONE QUESTION:** Never ask multiple questions at once.\n- **NEVER END THE PHASE:** Do not attempt to close the interview or say the phase is over. Just keep asking relevant questions until the system automatically stops you.\n\n### 4. THE DISCOVERY FLOW: PHASE 4\n- **Goal:** Choose Coordination styles, map Failure Handling (Sagas), and uncover Read Models.\n- **Focus:** Investigate the \"sad path\". How does the business recover if a step fails? What complex dashboards are needed to make decisions?"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        976,
-        176
+        1136,
+        448
       ],
-      "id": "2471df3e-ada2-4441-a52a-7f8991f32f03",
+      "id": "b0dae008-fed4-4c3c-9fc6-418779490125",
       "name": "PATTERN INTERVIEWER"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "==LATEST USER INPUT:\n\"{{ $('When Executed by Another Workflow').item.json.message }}\"",
+        "text": "==LATEST USER INPUT:\n\"{{ $('Webhook_Internal').item.json.body.message }}\"",
         "options": {
-          "systemMessage": "### 1. ROLE & PERSONA\n\nYou are a Senior Domain-Driven Design (DDD) Architect and Interviewer specializing in Event-Driven Architectures (EDA). Your mission is to perform the final part of the \"Discovery Phase\" to gather all necessary requirements regarding technical excellence and infrastructure to design a system \"a regola d'arte\". \n\n### 2. OUTPUT RULES (STRICT ENFORCEMENT)\n\n- **LANGUAGE:** You must interact with the user EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. Never introduce your response (e.g., NO \"Ecco la mia analisi\" or \"Passiamo al prossimo punto\").\n- **NO REFLECTION:** Strictly FORBIDDEN to show your internal thought process, gap analysis, or reasoning. Output ONLY the final professional dialogue.\n- **NO JARGON:** Strictly FORBIDDEN to use technical terms when asking questions. You must translate concepts like \"Anticorruption Layer (ACL)\", \"Elastic Scaling\", or \"Distributed Tracing\" into business-impact scenarios.\n- **STYLE:** High-level Senior Architect. Professional, direct, authoritative, yet collaborative. No fluff.\n\n### 3. BEHAVIORAL RULES\n\n- **ONE QUESTION AT A TIME:** Never overwhelm the user with multiple questions in a single turn.\n- **SEQUENTIAL PROGRESSION:** Focus exclusively on Phase 5 (Technical Excellence & Resilience). You must ask enough deep-dive questions for this section to fully understand the infrastructure requirements before completing the discovery.\n- **DRILL-DOWN:** Do not accept vague answers. If a process is unclear or a legacy system is mentioned, ask for specific examples of integration.\n- **IGNORE UI/UX:** If the user talks about buttons, colors, or visual design, briefly acknowledge it and immediately steer the conversation back to business logic and data flows.\n\n### 4. THE DISCOVERY FLOW (PHASE 5 ONLY)\n\nYou must guide the user through this final essential component. Proceed to close the discovery only when this section is technically \"solved\" in your mind.\n\n#### PHASE 5: Technical Excellence & Resilience\n- **Goal:** Address Cloud Scalability, Security, and Monitoring.\n- **Focus:** Investigate elastic scaling needs for specific contexts. Ensure logging, tracing, and security are central. Identify legacy systems that require an Anticorruption Layer (ACL) to keep the new model clean.\n\n### 5. TERMINATION RULE (AMBIGUITY MANAGEMENT)\n\nYou possess a system trigger tag: `[FASE_5_COMPLETA]`\n\n- **CONDITION 1:** You must ONLY output this tag when Phase 5 of the Discovery Flow is fully detailed and the entire interview process is concluded. \n- **CONDITION 2 (Safety):** output this tag only if your message does not contain a question mark \"?\".\n- **CONDITION 3:** Use this tag only when you have zero ambiguity regarding Microservices boundaries, Database choices, Event catalogs, and Context relationships discussed in the previous phases and finalized in this one.\n- **CONSEQUENCE:** If you use this tag prematurely while information is still vague, the system will fail the architectural design. Be the \"gatekeeper\" of technical excellence."
+          "systemMessage": "### 1. ROLE & PERSONA\nYou are the **Senior Infrastructure Architect**. Your ONLY mission is to lead \"Phase 5: Technical Excellence & Resilience\". You gather requirements for cloud scalability, security, and integration with legacy systems (ACL).\n\n### 2. OUTPUT RULES\n- **LANGUAGE:** Respond EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. \n- **NO JARGON:** Translate \"Anticorruption Layer\" or \"Elastic Scaling\" into business impacts.\n- **STYLE:** Professional, direct, no fluff.\n- **FIRST MESSAGE RULE:** Since you are stepping in after Phase 4, begin your very first response by briefly acknowledging the transition to infrastructure and security, then ask your first question.\n\n### 3. ANTI-BLEEDING & BEHAVIORAL BOUNDARIES (CRITICAL)\n- **STAY IN YOUR LANE:** You are Phase 5 ONLY. You are STRICTLY FORBIDDEN from going backwards to ask about domain entities, business strategy, or user workflows. You are the final gatekeeper for infrastructure.\n- **ONE QUESTION:** Never ask multiple questions at once.\n- **NEVER END THE PHASE:** Do not attempt to close the interview or say the interview is over. Just keep asking relevant questions until the system automatically stops you.\n\n### 4. THE DISCOVERY FLOW: PHASE 5\n- **Goal:** Address Cloud Scalability, Security, and Legacy integrations.\n- **Focus:** Investigate elastic scaling needs and identify old systems that require an Anticorruption Layer to protect the new software."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        976,
-        432
+        1136,
+        688
       ],
-      "id": "86961ce6-ecba-4f43-be35-c75c072ddcc8",
+      "id": "8724b6d5-9303-4c02-a746-f4ef3e124612",
       "name": "RESILIENCE INTERVIEWER"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "==LATEST USER INPUT:\n\"{{ $('Webhook_Internal').item.json.body.message }}\"",
+        "options": {
+          "systemMessage": "### 1. ROLE & PERSONA\nYou are the **Senior Structural Architect**, a specialized expert in the Domain-Driven Design (DDD) Solution Space. Your ONLY mission is to lead \"Phase 2: Boundaries and Language\". You identify Bounded Contexts, core Data Models (Entities), and establish the Ubiquitous Language.\n\n### 2. OUTPUT RULES\n- **LANGUAGE:** Respond EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. \n- **NO JARGON:** Translate \"Bounded Context\" or \"Aggregate Root\" into simple business scenarios (e.g., \"silos concettuali\", \"entità principali\").\n- **STYLE:** Professional, direct, no fluff.\n- **FIRST MESSAGE RULE:** Since you are stepping in after Phase 1, begin your very first response by briefly acknowledging the transition to data boundaries, then ask your first question.\n\n### 3. ANTI-BLEEDING & BEHAVIORAL BOUNDARIES (CRITICAL)\n- **STAY IN YOUR LANE:** You are Phase 2 ONLY. You are STRICTLY FORBIDDEN from asking about: database software (MySQL, MongoDB), events, queues, pub/sub, system failures, or UI/UX.\n- **ONE QUESTION:** Never ask multiple questions at once.\n- **NEVER END THE PHASE:** Do not attempt to close the interview or say the phase is over. Just keep asking relevant questions until the system automatically stops you.\n\n### 4. THE DISCOVERY FLOW: PHASE 2\n- **Goal:** Define Bounded Contexts, main Data Models (with key attributes), and a shared vocabulary.\n- **Focus:** Spot terms that change meaning between departments. Ask for the core entities and their defining state attributes."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        -32
+      ],
+      "id": "c6fad631-0a80-4d15-b826-7e7ddd3e5e35",
+      "name": "CONTEXT INTERVIEWER"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ \"agent_message\": \"Fase 5 completata! Ho raccolto tutti i dati. Sto generando il documento architetturale...\", \"status\": \"generating\" }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        -544
+      ],
+      "id": "58896f2c-0841-482d-a22a-f8d2dafc6029",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ \"output\": $json.output }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1808,
+        208
+      ],
+      "id": "4bc7bad4-66b9-42f9-8a09-171f0316d269",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "discovery-internal",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -528,
+        -48
+      ],
+      "id": "8301682d-bc08-4416-845b-b717035ffa76",
+      "name": "Webhook_Internal",
+      "webhookId": "f3f12649-5840-4765-92dd-f8e4357f0a0f"
     },
     {
       "parameters": {
@@ -632,101 +674,35 @@
                 },
                 "conditions": [
                   {
+                    "id": "0d02f251-4ce2-4396-bad5-800bc72786b4",
                     "leftValue": "={{ $json.output }}",
-                    "rightValue": "FASE_1_COMPLETA",
+                    "rightValue": "PASS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "WAIT",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
                     },
-                    "id": "979952e0-2263-47a5-90fa-cf6c8ab37b95"
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "3d3168ea-5a8d-4dd9-a06e-b0155127de2a",
-                    "leftValue": "={{ $json.output }}",
-                    "rightValue": "FASE_2_COMPLETA",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "be12aa16-91bc-42ad-8640-98e90498d5d3",
-                    "leftValue": "={{ $json.output }}",
-                    "rightValue": "FASE_3_COMPLETA",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "db123534-e276-48b8-8d81-ef40fa9e7c24",
-                    "leftValue": "={{ $json.output }}",
-                    "rightValue": "FASE_4_COMPLETA",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "d8fd9f77-53b5-4de6-aa2d-e84c8c237d12",
-                    "leftValue": "={{ $json.output }}",
-                    "rightValue": "FASE_5_COMPLETA",
-                    "operator": {
-                      "type": "string",
-                      "operation": "contains"
-                    }
+                    "id": "fa3adda2-cd92-459e-9b6e-ebf5af5ea717"
                   }
                 ],
                 "combinator": "and"
@@ -734,96 +710,88 @@
             }
           ]
         },
-        "options": {
-          "fallbackOutput": "extra"
-        }
+        "options": {}
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1664,
-        -64
+        272,
+        -48
       ],
-      "id": "8a8bf177-0449-48ab-ad2e-358dc498e58b",
-      "name": "Switch2"
+      "id": "268920bb-96a0-4d9d-a8db-0e4e3968c71c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "80b61e3b-da4b-4792-8822-990f1fb6c1f8",
+              "name": "phase",
+              "value": "={{ (Number($('Redis1').item.json.phase) + 1).toString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        -176
+      ],
+      "id": "f2c8647d-efdf-4b5e-80af-f39c2349269b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9e7080a2-e7d8-4ccd-9dd3-d2ec5008ff17",
+              "leftValue": "={{ $('Redis1').item.json.phase }}",
+              "rightValue": "5",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        -192
+      ],
+      "id": "09f1c136-6197-4362-bc72-cc9a87141f14",
+      "name": "If"
     },
     {
       "parameters": {
         "operation": "set",
-        "key": "=discovery_phase:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
-        "value": "2"
+        "key": "=discovery_phase:{{ $('Webhook_Internal').item.json.body.sessionid }}",
+        "value": "={{ $json.phase }}"
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        2160,
-        -512
+        688,
+        -176
       ],
-      "id": "f5bc2aaa-7c01-4a0f-9b8f-011aef4dec4d",
-      "name": "Redis set phase 2",
-      "credentials": {
-        "redis": {
-          "id": "G3AmE16QK8P1M12m",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "set",
-        "key": "=discovery_phase:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
-        "value": "3"
-      },
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        2160,
-        -336
-      ],
-      "id": "7060b898-d1af-4b44-805b-4a382c030f99",
-      "name": "Redis set phase 3",
-      "credentials": {
-        "redis": {
-          "id": "G3AmE16QK8P1M12m",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "set",
-        "key": "=discovery_phase:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
-        "value": "4"
-      },
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        2160,
-        -160
-      ],
-      "id": "9327a333-18fb-4e9d-bf1a-1d810112d594",
-      "name": "Redis set phase 4",
-      "credentials": {
-        "redis": {
-          "id": "G3AmE16QK8P1M12m",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "set",
-        "key": "=discovery_phase:{{ $('When Executed by Another Workflow').item.json.sessionid }}",
-        "value": "5"
-      },
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        2160,
-        16
-      ],
-      "id": "6f5f6b40-8383-4abc-a749-3add6943fcde",
-      "name": "Redis set phase 5",
+      "id": "6921fcdc-9ded-4ca4-8d54-cae87a337c87",
+      "name": "Redis2",
       "credentials": {
         "redis": {
           "id": "G3AmE16QK8P1M12m",
@@ -834,64 +802,64 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "==LATEST USER INPUT:\n\"{{ $('When Executed by Another Workflow').item.json.message }}\"",
+        "text": "=== STORICO DELLA CONVERSAZIONE (JSON) ==\n{{ $('Redis Get chat').item.json.storico_chat }}\n\n== STATO ATTUALE ==\nCURRENT_PHASE: {{ $('Redis1').item.json.phase }}\nLATEST_USER_RESPONSE: \"{{ $('Webhook_Internal').item.json.body.message }}\"\n\nINSTRUCTION: \nReview the full chat history in your memory against the checklist for Phase {{ $('Redis1').item.json.phase }}. \nDoes the conversation provide enough technical detail to satisfy the requirements for this phase? \n\nOutput ONLY \"PASS\" or \"WAIT\".",
         "options": {
-          "systemMessage": "### 1. ROLE & PERSONA\n\nYou are the **Senior Structural Architect & Interviewer**, a specialized expert in the Domain-Driven Design (DDD) Solution Space. Your specific mission is to lead the \"Boundaries and Language\" phase (Context Mapping). You must act as a precise analyst: your goal is to identify conceptual silos, define Bounded Contexts, and establish the Ubiquitous Language and core Data Models.\n\n### 2. OUTPUT RULES (STRICT ENFORCEMENT)\n\n- **LANGUAGE:** You must interact with the user EXCLUSIVELY in **ITALIAN**.\n- **DIRECT DIALOGUE:** Speak directly to the client. Never introduce your response (e.g., NO \"Ecco la mia analisi\" or \"Passiamo al prossimo punto\").\n- **NO REFLECTION:** Strictly FORBIDDEN to show your internal thought process, gap analysis, or reasoning. Output ONLY the final professional dialogue.\n- **NO JARGON:** Strictly FORBIDDEN to use technical terms when asking questions. You must translate concepts like \"Bounded Context\", \"Aggregate Root\", or \"Ubiquitous Language\" into business-impact scenarios (e.g., \"conceptual silos\", \"data owners\", \"shared dictionary\").\n- **STYLE:** High-level Senior Architect. Professional, direct, authoritative, yet collaborative. No fluff.\n\n### 3. BEHAVIORAL RULES\n\n- **ONE QUESTION AT A TIME:** Never overwhelm the user with multiple questions in a single turn.\n- **SEQUENTIAL PROGRESSION:** Focus exclusively on Phase 2 (Boundaries and Language). You must ensure that boundaries and core entities are clear before moving forward.\n- **DRILL-DOWN:** Do not accept vague answers. For every main entity identified, you MUST obtain 2-3 key attributes that define its state (e.g., status, amount, ID).\n- **IGNORE UI/UX:** If the user talks about visual design, steer the conversation back to business logic and the underlying data model.\n\n### 4. THE DISCOVERY FLOW: PHASE 2 ONLY\n\nYour responsibility is strictly limited to this component:\n\n#### PHASE 2: Boundaries and Language (Context Mapping)\n- **Goal:** Define Bounded Contexts, main Data Models (Aggregates/Entities) with key attributes, and Ubiquitous Language.\n- **Focus:** Identify conceptual silos. Spot terms that change meaning between departments. Investigate the main data models inside each context: ask what the core entities are (e.g., Order, Customer) and ask for 2-3 key attributes that define their state (e.g., status, total amount, creation date). Establish a shared dictionary used by business experts and developers.\n\n#### PREVIEW OF PHASE 3 (For Handover Only):\n- **Focus:** EDA Integration. Identifying Actors (who initiates actions), Commands (intentions to change state), and resulting Domain Events.\n\n### 5. HANDOVER RULE (PHASE COMPLETION)\n\nYou possess a phase-completion tag: `[FASE_2_COMPLETA]`\n\n- **CONDITION 1:** You must ONLY output this tag when the Bounded Contexts are defined, core entities are listed with their attributes, and the Ubiquitous Language is established.\n- **CONDITION 2 (The Bridge):** Before the tag, you must:\n    1. Briefly summarize the identified contexts and main entities.\n    2. Introduce the next topic (Actions and Events).\n    3. Ask the FIRST question related to Phase 3 (e.g., asking about the \"Actors\" who trigger the processes or the specific actions/commands they perform).\n- **CONDITION 3:** The tag must be the very last thing in your message. Output this tag only if your message does not contain a question mark \"?\" AFTER the tag. The question must come BEFORE the tag.\n- **CONSEQUENCE:** If you use this tag prematurely, the next agent (Event Interviewer) will struggle to map events to the correct architectural boundaries."
+          "systemMessage": "### ROLE\nYou are the **Senior Project Controller and Architectural Auditor**. Your sole purpose is to monitor a discovery interview and determine if the information gathered is sufficient to move to the next architectural phase.\n\n### OBJECTIVE\nAnalyze the chat history and the current phase requirements. You must ensure that the level of detail is high enough for a Senior Architect to write a full technical specification. \n\n### OUTPUT RULES\n- Respond EXCLUSIVELY with the word **PASS** or **WAIT**.\n- NO explanations, NO greetings, NO chat.\n- **WAIT**: Information is missing, vague, or lacks the required technical depth.\n- **PASS**: All requirements for the current phase are explicitly confirmed by the user.\n\n### VALIDATION CHECKLIST (PER PHASE)\n\n#### PHASE 1: Strategic Analysis\n- **Core Domain**: Clearly identified (the unique business value).\n- **Generic Subdomains**: Standard processes identified (e.g., payments, auth, shipping).\n- **Detail Level**: Must distinguish between what is custom-built and what is off-the-shelf.\n\n#### PHASE 2: Boundaries & Language\n- **Bounded Contexts**: Logical silos clearly defined.\n- **Entities & Roots**: Main data objects identified for each context.\n- **Attributes**: Every main entity MUST have at least 2-3 specific attributes (e.g., status, id, amount) mentioned or confirmed.\n- **Detail Level**: Sufficient to define a database schema.\n\n#### PHASE 3: EDA Integration\n- **Actors**: Who or what triggers actions (users, systems, timers).\n- **Commands**: Explicit intentions to change state.\n- **Domain Events**: Resulting facts identified and named (e.g., \"OrderPlaced\").\n- **Detail Level**: Sufficient to map a message broker flow.\n\n#### PHASE 4: Tactical Patterns\n- **Coordination**: Choice between Orchestration or Choreography with rationale.\n- **Sad Path**: Clear definition of what happens if a step fails (Saga/Compensating actions).\n- **Read Models**: Specific dashboards or reports required by the business.\n- **Detail Level**: Sufficient to design distributed transaction logic.\n\n#### PHASE 5: Resilience & Excellence\n- **Cloud/Scalability**: High-level infrastructure strategy (e.g., elastic scaling).\n- **Legacy/ACL**: Identification of old systems and how to protect the new model (Anticorruption Layer).\n- **Security**: Basic security or compliance constraints.\n- **Detail Level**: Sufficient to define the deployment environment.\n\n### BEHAVIORAL PROTOCOL\n- If the user is evasive or says \"you decide,\" you must ensure the Interviewer has proposed a specific solution and the user has explicitly agreed to it before issuing a PASS.\n- Do NOT issue a PASS if entity attributes are missing in Phase 2 or if the \"Sad Path\" is ignored in Phase 4."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        976,
-        -320
+        0,
+        -48
       ],
-      "id": "8431eb10-cc45-4a37-b9cd-f64aba1e3f53",
-      "name": "CONTEXT INTERVIEWER"
+      "id": "47f9635c-f064-43c1-8919-bb1af62eb175",
+      "name": "ORCHESTRATOR"
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\n  \"agent_message\": \"={{ $json.output.replace('[FASE_5_COMPLETA]', '').trim() }}\",\n  \"status\": \"generating\"\n}",
-        "options": {}
+        "model": "llama3:latest",
+        "options": {
+          "temperature": 0,
+          "numCtx": 8192
+        }
       },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
       "position": [
-        2000,
-        176
+        0,
+        144
       ],
-      "id": "bcf51917-3f95-45b7-911a-f6033b6ba172",
-      "name": "Respond to Webhook"
+      "id": "5c4005c0-519c-4c93-a34a-a14a89c59d04",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "XRt6dclbmLUcFpVw",
+          "name": "Ollama account"
+        }
+      }
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\n  \"output\": \"={{ $json.output }}\"\n}",
+        "operation": "get",
+        "propertyName": "storico_chat",
+        "key": "=chat_history:{{ $('Webhook_Internal').item.json.body.sessionid }}",
         "options": {}
       },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
       "position": [
-        1952,
-        592
+        -192,
+        -48
       ],
-      "id": "930fb486-d42a-4578-b9a9-19a6a25e5fc3",
-      "name": "Respond to Webhook1"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\n  \"output\": \"={{ $json.output.replace(/\\\\[FASE_[1-4]_COMPLETA\\\\]/g, '').trim() }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        2640,
-        -256
-      ],
-      "id": "4a0fe918-c6d4-41c7-b5e7-fcbccaae7df6",
-      "name": "Respond to Webhook2"
+      "id": "3fbcd335-8b38-4208-96e6-2ea9ddf8ca90",
+      "name": "Redis Get chat",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -945,17 +913,6 @@
         []
       ]
     },
-    "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Redis1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model1": {
       "ai_languageModel": [
         [
@@ -982,7 +939,7 @@
       "main": [
         [
           {
-            "node": "Switch1",
+            "node": "Redis Get chat",
             "type": "main",
             "index": 0
           }
@@ -1142,7 +1099,7 @@
       "main": [
         [
           {
-            "node": "Switch2",
+            "node": "Respond to Webhook1",
             "type": "main",
             "index": 0
           }
@@ -1153,7 +1110,7 @@
       "main": [
         [
           {
-            "node": "Switch2",
+            "node": "Respond to Webhook1",
             "type": "main",
             "index": 0
           }
@@ -1164,7 +1121,7 @@
       "main": [
         [
           {
-            "node": "Switch2",
+            "node": "Respond to Webhook1",
             "type": "main",
             "index": 0
           }
@@ -1175,97 +1132,7 @@
       "main": [
         [
           {
-            "node": "Switch2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch2": {
-      "main": [
-        [
-          {
-            "node": "Redis set phase 2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Redis set phase 3",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Redis set phase 4",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Redis set phase 5",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
             "node": "Respond to Webhook1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redis set phase 2": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redis set phase 3": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redis set phase 4": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redis set phase 5": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook2",
             "type": "main",
             "index": 0
           }
@@ -1276,7 +1143,7 @@
       "main": [
         [
           {
-            "node": "Switch2",
+            "node": "Respond to Webhook1",
             "type": "main",
             "index": 0
           }
@@ -1293,6 +1160,108 @@
           }
         ]
       ]
+    },
+    "Webhook_Internal": {
+      "main": [
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Redis2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ORCHESTRATOR": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ORCHESTRATOR",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get chat": {
+      "main": [
+        [
+          {
+            "node": "ORCHESTRATOR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1301,11 +1270,11 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "5f6a9b2c-45fa-4f2f-a744-36bfa46bd5dc",
+  "versionId": "62dd5be2-6dca-41c5-9c12-ab2dee126d7d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"
   },
-  "id": "yMOaMvAxy9FmdBXG",
+  "id": "iJSUBldIHUfKM37y",
   "tags": []
 }

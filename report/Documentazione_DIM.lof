@@ -7,15 +7,15 @@
 \contentsline {figure}{\numberline {5.1}{\ignorespaces Architettura a microservizi del sistema Domain Interviewer \& Modeler}}{11}{figure.caption.6}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {7.1}{\ignorespaces Routing Workflow e Pipeline di Gestione dei Messaggi}}{16}{figure.caption.9}%
-\contentsline {figure}{\numberline {7.2}{\ignorespaces Discovery Workflow: Pipeline di intervista a 5 fasi}}{17}{figure.caption.10}%
-\contentsline {figure}{\numberline {7.3}{\ignorespaces Refinement Workflow --- Modifica interattiva del modello architetturale}}{18}{figure.caption.12}%
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Routing Workflow e Pipeline di Gestione dei Messaggi}}{15}{figure.caption.9}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Discovery Workflow: Pipeline di intervista a 5 fasi}}{16}{figure.caption.10}%
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Refinement Workflow --- Modifica interattiva del modello architetturale}}{17}{figure.caption.12}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {9.1}{\ignorespaces Architettura dello stack di osservabilità: OTel Collector $\to $ Loki / Tempo / Prometheus $\to $ Grafana}}{21}{figure.caption.14}%
-\contentsline {figure}{\numberline {9.2}{\ignorespaces Dashboard Grafana --- Visualizzazione log aggregati da Loki}}{23}{figure.caption.18}%
-\contentsline {figure}{\numberline {9.3}{\ignorespaces Grafana Tempo --- Visualizzazione tracce distribuite di una esecuzione workflow n8n}}{24}{figure.caption.19}%
-\contentsline {figure}{\numberline {9.4}{\ignorespaces Correlazione log $\to $ tracce in Grafana tramite \texttt {trace\_id}}}{24}{figure.caption.20}%
+\contentsline {figure}{\numberline {9.1}{\ignorespaces Architettura dello stack di osservabilità: OTel Collector $\to $ Loki / Prometheus $\to $ Grafana}}{20}{figure.caption.14}%
+\contentsline {figure}{\numberline {9.2}{\ignorespaces Dashboard Grafana --- Visualizzazione log aggregati da Loki}}{22}{figure.caption.18}%
+\contentsline {figure}{\numberline {9.3}{\ignorespaces Grafana Tempo --- Visualizzazione tracce distribuite di una esecuzione workflow n8n}}{22}{figure.caption.19}%
+\contentsline {figure}{\numberline {9.4}{\ignorespaces Correlazione log $\to $ tracce in Grafana tramite \texttt {trace\_id}}}{22}{figure.caption.20}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsfinish 

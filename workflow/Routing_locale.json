@@ -5,7 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "chat-locale",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {
           "allowedOrigins": "*"
         }
@@ -76,125 +76,6 @@
       ],
       "id": "e716b110-5612-41d8-aa0d-3585a65b1888",
       "name": "If"
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "yMOaMvAxy9FmdBXG",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/yMOaMvAxy9FmdBXG",
-          "cachedResultName": "DISCOVERY WORKFLOW_locale"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "message": "={{ $('Webhook').item.json.body.message }}",
-            "sessionid": "={{ $('Webhook').item.json.body.sessionId }}"
-          },
-          "matchingColumns": [
-            "message"
-          ],
-          "schema": [
-            {
-              "id": "message",
-              "displayName": "message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "sessionid",
-              "displayName": "sessionid",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        1280,
-        -160
-      ],
-      "id": "fee05f35-f093-4068-8b39-33b2b289a584",
-      "name": "Call 'DISCOVERY WORKFLOW_locale'"
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "6MstrHh0fSDHkL5j",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/6MstrHh0fSDHkL5j",
-          "cachedResultName": "REFINEMENT WORKFLOW_locale"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "message": "={{ $('Webhook').item.json.body.message }}",
-            "sessionid": "={{ $('Webhook').item.json.body.sessionId }}",
-            "action": "={{ $('Webhook').item.json.body.action }}"
-          },
-          "matchingColumns": [
-            "message"
-          ],
-          "schema": [
-            {
-              "id": "message",
-              "displayName": "message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "sessionid",
-              "displayName": "sessionid",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "action",
-              "displayName": "action",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.3,
-      "position": [
-        640,
-        112
-      ],
-      "id": "b025ca58-4540-453e-a0ac-60fc81ad8d4f",
-      "name": "Call 'REFINEMENT WORKFLOW_locale'"
     },
     {
       "parameters": {
@@ -272,6 +153,66 @@
           "name": "Redis account"
         }
       }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/discovery-internal",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $('Webhook').item.json.body.message }}"
+            },
+            {
+              "name": "sessionid",
+              "value": "={{ $('Webhook').item.json.body.sessionId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1280,
+        -160
+      ],
+      "id": "4c14729e-f20c-41a5-b6f4-3c990b42731a",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/refinement-internal",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $('Webhook').item.json.body.message }}"
+            },
+            {
+              "name": "sessionid",
+              "value": "={{ $('Webhook').item.json.body.sessionId }}"
+            },
+            {
+              "name": "action",
+              "value": "={{ $('Webhook').item.json.body.action }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        640,
+        112
+      ],
+      "id": "101dac1e-3661-4728-8d7d-b602d5e24855",
+      "name": "HTTP Request1"
     }
   ],
   "pinData": {},
@@ -309,7 +250,7 @@
         ],
         [
           {
-            "node": "Call 'REFINEMENT WORKFLOW_locale'",
+            "node": "HTTP Request1",
             "type": "main",
             "index": 0
           }
@@ -331,7 +272,7 @@
       "main": [
         [
           {
-            "node": "Call 'DISCOVERY WORKFLOW_locale'",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
@@ -349,7 +290,7 @@
       "main": [
         [
           {
-            "node": "Call 'DISCOVERY WORKFLOW_locale'",
+            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }
@@ -363,7 +304,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "240a7551-54b9-48f1-8f04-5c966e1ecc65",
+  "versionId": "56e59f8e-c872-4686-b818-06e9e1e1e4c3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"

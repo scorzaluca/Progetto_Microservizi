@@ -10,12 +10,12 @@
 \addvspace {10\p@ }
 \contentsline {table}{\numberline {6.1}{\ignorespaces Dettaglio dei servizi nel Docker Compose}}{14}{table.caption.8}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {7.1}{\ignorespaces Configurazione degli agenti nel Discovery Workflow}}{16}{table.caption.11}%
+\contentsline {table}{\numberline {7.1}{\ignorespaces Configurazione degli agenti nel Discovery Workflow}}{17}{table.caption.11}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {8.1}{\ignorespaces Endpoint di comunicazione Frontend $\to $ n8n}}{19}{table.caption.13}%
+\contentsline {table}{\numberline {8.1}{\ignorespaces Endpoint di comunicazione Frontend $\to $ n8n}}{20}{table.caption.13}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {9.1}{\ignorespaces Receivers configurati nell'OpenTelemetry Collector}}{20}{table.caption.15}%
-\contentsline {table}{\numberline {9.2}{\ignorespaces Exporters configurati nell'OpenTelemetry Collector}}{21}{table.caption.16}%
+\contentsline {table}{\numberline {9.1}{\ignorespaces Receivers configurati nell'OpenTelemetry Collector}}{21}{table.caption.15}%
+\contentsline {table}{\numberline {9.2}{\ignorespaces Exporters configurati nell'OpenTelemetry Collector}}{22}{table.caption.16}%
 \contentsline {table}{\numberline {9.3}{\ignorespaces Datasource Grafana preconfigurati}}{22}{table.caption.17}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }

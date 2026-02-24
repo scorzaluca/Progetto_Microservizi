@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architettura Microservizi — Agente DDD Interviewer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            color: #1a1a2e;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #5a6178;
+            margin-bottom: 40px;
+        }
+
+        /* ======== MAIN CANVAS ======== */
+        .canvas {
+            position: relative;
+            width: 1100px;
+            min-height: 820px;
+            border: 2px dashed rgba(100, 120, 200, 0.4);
+            border-radius: 24px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fc 0%, #f0f2f8 100%);
+        }
+
+        .network-label {
+            position: absolute;
+            bottom: 12px;
+            right: 24px;
+            font-size: 13px;
+            color: rgba(60, 80, 160, 0.6);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* ======== LAYER HEADERS ======== */
+        .layer {
+            margin-bottom: 30px;
+        }
+
+        .layer-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(0, 0, 0, 0.4);
+            margin-bottom: 18px;
+            padding-left: 4px;
+        }
+
+        .layer-content {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        /* ======== SERVICE BOX ======== */
+        .service {
+            position: relative;
+            border-radius: 16px;
+            padding: 20px 24px;
+            min-width: 180px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: default;
+        }
+
+        .service:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .service-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .service-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .service-role {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+        }
+
+        .service-port {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.75);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .service-container {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* ======== COLORS ======== */
+        .s-frontend {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
+        }
+
+        .s-n8n {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            box-shadow: 0 4px 20px rgba(22, 163, 74, 0.35);
+        }
+
+        .s-ollama {
+            background: linear-gradient(135deg, #9333ea, #7e22ce);
+            box-shadow: 0 4px 20px rgba(147, 51, 234, 0.35);
+        }
+
+        .s-redis {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.35);
+        }
+
+        .s-otel {
+            background: linear-gradient(135deg, #ea580c, #c2410c);
+            box-shadow: 0 4px 20px rgba(234, 88, 12, 0.4);
+            min-width: 280px;
+        }
+
+        .s-loki {
+            background: linear-gradient(135deg, #eab308, #ca8a04);
+            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
+        }
+
+        .s-loki .service-name,
+        .s-loki .service-role {
+            color: #1a1a2e;
+        }
+
+        .s-loki .service-port {
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+
+        .s-prometheus {
+            background: linear-gradient(135deg, #e11d48, #be123c);
+            box-shadow: 0 4px 20px rgba(225, 29, 72, 0.35);
+        }
+
+        .s-grafana {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
+        }
+
+        .s-redis-exporter {
+            background: linear-gradient(135deg, #991b1b, #7f1d1d);
+            box-shadow: 0 4px 20px rgba(153, 27, 27, 0.3);
+            min-width: 140px;
+        }
+
+        /* ======== ARROWS SECTION ======== */
+        .arrows-section {
+            margin-top: 50px;
+            width: 1100px;
+        }
+
+        .arrows-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+        }
+
+        .arrow-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .arrow-table thead th {
+            background: #2d3148;
+            color: #c8d0e8;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 14px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 100, 200, 0.15);
+        }
+
+        .arrow-table tbody tr {
+            background: #f4f5f9;
+            transition: background 0.2s;
+        }
+
+        .arrow-table tbody tr:hover {
+            background: #e8eaf2;
+        }
+
+        .arrow-table tbody tr:not(:last-child) td {
+            border-bottom: 1px solid rgba(100, 100, 200, 0.12);
+        }
+
+        .arrow-table td {
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .arrow-table td:first-child {
+            font-weight: 600;
+        }
+
+        .protocol-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .proto-http {
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+        }
+
+        .proto-otlp {
+            background: rgba(234, 88, 12, 0.2);
+            color: #fb923c;
+        }
+
+        .proto-grpc {
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+        }
+
+        .proto-redis {
+            background: rgba(220, 38, 38, 0.2);
+            color: #f87171;
+        }
+
+        .proto-prom {
+            background: rgba(225, 29, 72, 0.2);
+            color: #fb7185;
+        }
+
+        .proto-rw {
+            background: rgba(225, 29, 72, 0.2);
+            color: #fb7185;
+        }
+
+        .signal-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        .sig-logs {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+        }
+
+        .sig-traces {
+            background: rgba(14, 165, 233, 0.2);
+            color: #38bdf8;
+        }
+
+        .sig-metrics {
+            background: rgba(225, 29, 72, 0.2);
+            color: #fb7185;
+        }
+
+        .sig-all {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+
+        /* ======== SVG ARROWS OVERLAY ======== */
+        svg.arrows-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .arrow-line {
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .arrow-label-bg {
+            fill: rgba(255, 255, 255, 0.9);
+            rx: 6;
+            ry: 6;
+        }
+
+        .arrow-label-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 9px;
+            font-weight: 600;
+            fill: #4a5568;
+        }
+
+        /* ======== LEGEND ======== */
+        .legend {
+            margin-top: 40px;
+            width: 1100px;
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .legend-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-label {
+            font-size: 12px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        /* ======== OBSERVABILITY SUBLAYER ======== */
+        .obs-sublayer {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .obs-row {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        /* ======== CONNECTOR LINES (CSS) ======== */
+        .connectors {
+            position: relative;
+            height: 50px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .connector-group {
+            display: flex;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .conn-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .conn-line {
+            width: 2px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .conn-arrow-head {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid rgba(0, 0, 0, 0.35);
+        }
+
+        .conn-label {
+            font-size: 9px;
+            color: rgba(0, 0, 0, 0.45);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* ======== FLOW ARROWS (Horizontal) ======== */
+        .flow-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .flow-line-h {
+            width: 40px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .flow-line-h::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 6px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .flow-label {
+            font-size: 9px;
+            color: rgba(0, 0, 0, 0.4);
+            font-weight: 600;
+            writing-mode: horizontal-tb;
+        }
+
+        /* Application row with arrows */
+        .app-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* Dashed connector for telemetry */
+        .conn-line-dashed {
+            width: 2px;
+            height: 20px;
+            border-left: 2px dashed rgba(234, 88, 12, 0.5);
+        }
+
+        .conn-arrow-head-orange {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid rgba(234, 88, 12, 0.6);
+        }
+
+        .conn-label-orange {
+            font-size: 9px;
+            color: rgba(234, 88, 12, 0.6);
+            font-weight: 600;
+        }
+
+        /* Backend row connectors */
+        .backend-connectors {
+            display: flex;
+            justify-content: center;
+            gap: 120px;
+            height: 40px;
+            align-items: center;
+        }
+
+        .grafana-connectors {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            height: 35px;
+            align-items: center;
+        }
+
+        /* Observability detail connectors */
+        .otel-to-backends {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            align-items: center;
+            height: 45px;
+        }
+
+        .otel-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .otel-arrow .conn-line {
+            background: rgba(234, 88, 12, 0.4);
+        }
+
+        .otel-arrow .conn-arrow-head {
+            border-top-color: rgba(234, 88, 12, 0.6);
+        }
+
+        .otel-arrow .conn-label {
+            color: rgba(234, 88, 12, 0.6);
+        }
+
+        /* Grafana query arrows */
+        .grafana-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .grafana-arrow .conn-line {
+            height: 15px;
+            background: rgba(249, 115, 22, 0.3);
+        }
+
+        .grafana-arrow .conn-arrow-head {
+            border-top: none;
+            border-bottom: 6px solid rgba(249, 115, 22, 0.5);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+        }
+
+        .grafana-arrow .conn-label {
+            color: rgba(249, 115, 22, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🏗️ Architettura a Microservizi</h1>
+    <p class="subtitle">Agente DDD Interviewer — 8 Container Docker su rete bridge <code>rete_unica</code></p>
+
+    <!-- ======== MAIN DIAGRAM ======== -->
+    <div class="canvas">
+        <span class="network-label">Docker Network: rete_unica (bridge)</span>
+
+        <!-- LAYER 1: PRESENTATION -->
+        <div class="layer">
+            <div class="layer-title">🌐 Livello Presentazione</div>
+            <div class="layer-content">
+                <div class="service s-frontend">
+                    <div class="service-icon">🖥️</div>
+                    <div class="service-name">Frontend Chat UI</div>
+                    <div class="service-role">Single Page Application</div>
+                    <div class="service-port">index.html (file locale)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONNECTOR: Frontend → N8N -->
+        <div class="connectors">
+            <div class="conn-arrow">
+                <div class="conn-label">HTTP POST /webhook/*</div>
+                <div class="conn-line"></div>
+                <div class="conn-arrow-head"></div>
+            </div>
+        </div>
+
+        <!-- LAYER 2: APPLICATION -->
+        <div class="layer">
+            <div class="layer-title">⚙️ Livello Applicativo</div>
+            <div class="layer-content">
+                <div class="app-row">
+                    <div class="service s-ollama">
+                        <div class="service-icon">🧠</div>
+                        <div class="service-name">Ollama</div>
+                        <div class="service-role">LLM Engine</div>
+                        <div class="service-port">:11434</div>
+                        <div class="service-container">ollama</div>
+                    </div>
+
+                    <div class="flow-indicator">
+                        <div class="flow-label">HTTP API</div>
+                        <div class="flow-line-h" style="transform: scaleX(-1);"></div>
+                    </div>
+
+                    <div class="service s-n8n">
+                        <div class="service-icon">🔄</div>
+                        <div class="service-name">N8N</div>
+                        <div class="service-role">Orchestratore Workflow</div>
+                        <div class="service-port">:5678</div>
+                        <div class="service-container">n8n</div>
+                    </div>
+
+                    <div class="flow-indicator">
+                        <div class="flow-line-h"></div>
+                        <div class="flow-label">GET/SET/DEL</div>
+                    </div>
+
+                    <div class="service s-redis">
+                        <div class="service-icon">💾</div>
+                        <div class="service-name">Redis</div>
+                        <div class="service-role">Session Store</div>
+                        <div class="service-port">:6379</div>
+                        <div class="service-container">redis</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONNECTOR: N8N → OTel (Telemetry) -->
+        <div class="connectors">
+            <div class="connector-group">
+                <div class="conn-arrow">
+                    <div class="conn-label-orange">OTLP HTTP :4318 (logs + metrics)</div>
+                    <div class="conn-line-dashed"></div>
+                    <div class="conn-arrow-head-orange"></div>
+                </div>
+                <div class="conn-arrow" style="margin-left: 200px;">
+                    <div class="conn-label" style="color: rgba(220,38,38,0.5);">Redis Protocol → Prometheus /metrics
+                    </div>
+                    <div class="conn-line" style="background: rgba(220,38,38,0.3);"></div>
+                    <div class="conn-arrow-head" style="border-top-color: rgba(220,38,38,0.4);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAYER 3: OBSERVABILITY -->
+        <div class="layer">
+            <div class="layer-title">📊 Livello Osservabilità</div>
+            <div class="obs-sublayer">
+
+                <!-- OTel Collector + Redis Exporter row -->
+                <div class="obs-row">
+                    <div class="service s-otel">
+                        <div class="service-icon">📡</div>
+                        <div class="service-name">OpenTelemetry Collector</div>
+                        <div class="service-role">Hub Centrale Telemetria</div>
+                        <div class="service-port">gRPC :4317 · HTTP :4318</div>
+                        <div class="service-container">otel-collector</div>
+                    </div>
+                    <div class="service s-redis-exporter">
+                        <div class="service-icon">📤</div>
+                        <div class="service-name">Redis Exporter</div>
+                        <div class="service-role">Metrics Bridge</div>
+                        <div class="service-port">:9121</div>
+                        <div class="service-container">redis-exporter</div>
+                    </div>
+                </div>
+
+                <!-- OTel → Backends connectors -->
+                <div class="otel-to-backends">
+                    <div class="otel-arrow">
+                        <div class="conn-label" style="color: rgba(234,179,8,0.7);">OTLP HTTP (Logs)</div>
+                        <div class="conn-line" style="background: rgba(234,179,8,0.4);"></div>
+                        <div class="conn-arrow-head" style="border-top-color: rgba(234,179,8,0.6);"></div>
+                    </div>
+                    <div class="otel-arrow">
+                        <div class="conn-label" style="color: rgba(225,29,72,0.7);">Remote Write (Metrics)</div>
+                        <div class="conn-line" style="background: rgba(225,29,72,0.4);"></div>
+                        <div class="conn-arrow-head" style="border-top-color: rgba(225,29,72,0.6);"></div>
+                    </div>
+                </div>
+
+                <!-- Backend Storage row -->
+                <div class="obs-row">
+                    <div class="service s-loki">
+                        <div class="service-icon">📝</div>
+                        <div class="service-name">Loki</div>
+                        <div class="service-role">Log Aggregation</div>
+                        <div class="service-port">:3100</div>
+                        <div class="service-container">loki</div>
+                    </div>
+                    <div class="service s-prometheus">
+                        <div class="service-icon">📈</div>
+                        <div class="service-name">Prometheus</div>
+                        <div class="service-role">Metrics Storage</div>
+                        <div class="service-port">:9090</div>
+                        <div class="service-container">prometheus</div>
+                    </div>
+                </div>
+
+                <!-- Grafana query arrows -->
+                <div class="grafana-connectors">
+                    <div class="grafana-arrow">
+                        <div class="conn-arrow-head"></div>
+                        <div class="conn-line"></div>
+                        <div class="conn-label" style="color: rgba(249,115,22,0.5);">LogQL</div>
+                    </div>
+                    <div class="grafana-arrow">
+                        <div class="conn-arrow-head"></div>
+                        <div class="conn-line"></div>
+                        <div class="conn-label" style="color: rgba(249,115,22,0.5);">PromQL</div>
+                    </div>
+                </div>
+
+                <!-- Grafana -->
+                <div class="obs-row">
+                    <div class="service s-grafana">
+                        <div class="service-icon">📊</div>
+                        <div class="service-name">Grafana</div>
+                        <div class="service-role">Visualization & Correlation</div>
+                        <div class="service-port">:8080 → :3000</div>
+                        <div class="service-container">grafana</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== COMMUNICATION TABLE ======== -->
+    <div class="arrows-section">
+        <h2 class="arrows-title" style="margin-top: 50px;">🔗 Flussi di Comunicazione</h2>
+        <table class="arrow-table">
+            <thead>
+                <tr>
+                    <th>Sorgente</th>
+                    <th>Destinazione</th>
+                    <th>Protocollo</th>
+                    <th>Porta</th>
+                    <th>Segnale</th>
+                    <th>Descrizione</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Frontend</td>
+                    <td>N8N</td>
+                    <td><span class="protocol-badge proto-http">HTTP REST</span></td>
+                    <td>5678</td>
+                    <td>—</td>
+                    <td>Webhook: chat, draft decision, polling</td>
+                </tr>
+                <tr>
+                    <td>N8N</td>
+                    <td>Ollama</td>
+                    <td><span class="protocol-badge proto-http">HTTP API</span></td>
+                    <td>11434</td>
+                    <td>—</td>
+                    <td>Chiamate LLM per generazione/analisi DDD</td>
+                </tr>
+                <tr>
+                    <td>N8N</td>
+                    <td>Redis</td>
+                    <td><span class="protocol-badge proto-redis">Redis</span></td>
+                    <td>6379</td>
+                    <td>—</td>
+                    <td>Stato sessione, chat history, JSON architettura</td>
+                </tr>
+                <tr>
+                    <td>N8N</td>
+                    <td>OTel Collector</td>
+                    <td><span class="protocol-badge proto-otlp">OTLP HTTP</span></td>
+                    <td>4318</td>
+                    <td><span class="signal-badge sig-all">ALL</span></td>
+                    <td>Telemetria strutturata: logs, metrics</td>
+                </tr>
+                <tr>
+                    <td>Docker Containers</td>
+                    <td>OTel Collector</td>
+                    <td><span class="protocol-badge proto-otlp">Filelog</span></td>
+                    <td>—</td>
+                    <td><span class="signal-badge sig-logs">LOGS</span></td>
+                    <td>Container logs via Docker Observer (escluso n8n)</td>
+                </tr>
+                <tr>
+                    <td>Redis Exporter</td>
+                    <td>OTel Collector</td>
+                    <td><span class="protocol-badge proto-prom">Prometheus</span></td>
+                    <td>9121</td>
+                    <td><span class="signal-badge sig-metrics">METRICS</span></td>
+                    <td>Scraping endpoint /metrics ogni 10s</td>
+                </tr>
+                <tr>
+                    <td>OTel Collector</td>
+                    <td>Loki</td>
+                    <td><span class="protocol-badge proto-otlp">OTLP HTTP</span></td>
+                    <td>3100</td>
+                    <td><span class="signal-badge sig-logs">LOGS</span></td>
+                    <td>Log indicizzati con label OTLP (container.name, etc.)</td>
+                </tr>
+                <tr>
+                    <td>OTel Collector</td>
+                    <td>Prometheus</td>
+                    <td><span class="protocol-badge proto-rw">Remote Write</span></td>
+                    <td>9090</td>
+                    <td><span class="signal-badge sig-metrics">METRICS</span></td>
+                    <td>Metriche via /api/v1/write</td>
+                </tr>
+                <tr>
+                    <td>Grafana</td>
+                    <td>Loki</td>
+                    <td><span class="protocol-badge proto-http">HTTP</span></td>
+                    <td>3100</td>
+                    <td><span class="signal-badge sig-logs">LOGS</span></td>
+                    <td>Query LogQL per visualizzazione log</td>
+                </tr>
+                <tr>
+                    <td>Grafana</td>
+                    <td>Prometheus</td>
+                    <td><span class="protocol-badge proto-http">HTTP</span></td>
+                    <td>9090</td>
+                    <td><span class="signal-badge sig-metrics">METRICS</span></td>
+                    <td>Query PromQL per visualizzazione metriche</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ======== LEGEND ======== -->
+    <div class="legend">
+        <div class="legend-group">
+            <div class="legend-dot" style="background: #2563eb;"></div>
+            <span class="legend-label">Presentazione</span>
+        </div>
+        <div class="legend-group">
+            <div class="legend-dot" style="background: #16a34a;"></div>
+            <span class="legend-label">Orchestrazione</span>
+        </div>
+        <div class="legend-group">
+            <div class="legend-dot" style="background: #9333ea;"></div>
+            <span class="legend-label">AI/LLM</span>
+        </div>
+        <div class="legend-group">
+            <div class="legend-dot" style="background: #dc2626;"></div>
+            <span class="legend-label">Data Store</span>
+        </div>
+        <div class="legend-group">
+            <div class="legend-dot" style="background: #ea580c;"></div>
+            <span class="legend-label">Osservabilità</span>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -4,8 +4,10 @@
     {
       "parameters": {
         "path": "check-status-locale",
-        "responseMode": "lastNode",
-        "options": {}
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
@@ -93,19 +95,19 @@
             {
               "id": "d284e795-9e1e-4cb4-911c-059ff351a031",
               "name": "discovery_json",
-              "value": "={{ $json.discovery_data || null }}",
+              "value": "={{ $('Redis').item.json.discovery_data || null }}",
               "type": "string"
             },
             {
               "id": "aaf6eddd-0b87-42a0-997f-45cb9178241f",
               "name": "draft_json",
-              "value": "={{ $json.draft_data || null }}",
+              "value": "={{ $('Redis1').item.json.draft_data || null }}",
               "type": "string"
             },
             {
               "id": "9dbc1efb-dd6d-435d-b5d1-51fd0a9122e4",
               "name": "draft_status",
-              "value": "={{ $json.draft_status || null }}",
+              "value": "={{ $('Redis2').item.json.draft_status || null }}",
               "type": "string"
             }
           ]
@@ -120,6 +122,21 @@
       ],
       "id": "2d838311-eb6f-4907-a313-b7137ad1c1b5",
       "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "e3180d16-500d-42b5-8ad5-ae26933c013c",
+      "name": "Respond to Webhook"
     }
   ],
   "pinData": {},
@@ -167,15 +184,26 @@
           }
         ]
       ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "e0a4d4be-bc0c-4a1a-8992-a77859921286",
+  "versionId": "e352ee3e-021b-42f8-b8d8-66a9345be612",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"

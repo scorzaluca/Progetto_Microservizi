@@ -23,8 +23,8 @@ receivers:
     watch_observers: [docker_observer]
     receivers:
       filelog:
-        # Esclude il container otel-collector per evitare feedback loop
-        rule: type == "container" && name != "otel-collector"
+        # Esclude otel-collector (feedback loop) e n8n (invia log via OTLP strutturato)
+        rule: type == "container" && name != "otel-collector" && name != "n8n"
         config:
           include:
             - /var/lib/docker/containers/`container_id`/`container_id`-json.log
@@ -77,29 +77,17 @@ processors:
     keys:
       - log.iostream
 
-  # Resource: aggiunge attributi DDD a tutti i segnali per filtraggio in Grafana
+  # Resource: aggiunge attributi di sistema (facoltativo, rimosso per pulizia label)
   resource:
     attributes:
-      - key: domain
-        value: "core_domain"
-        action: insert
-      - key: bounded_context
-        value: "domain_modeling"
-        action: insert
-      - key: service.name
-        value: "agent_1_interviewer"
+      - key: cluster
+        value: "local-dev"
         action: insert
 
 exporters:
   # Logs → Loki
   otlphttp/loki:
     endpoint: http://loki:3100/otlp
-    tls:
-      insecure: true
-
-  # Traces → Tempo
-  otlp/tempo:
-    endpoint: tempo:4317
     tls:
       insecure: true
 
@@ -122,11 +110,6 @@ service:
       receivers: [otlp, receiver_creator/docker]
       processors: [groupbyattrs, resource, batch]
       exporters: [otlphttp/loki, debug]
-
-    traces:
-      receivers: [otlp]
-      processors: [resource, batch]
-      exporters: [otlp/tempo, debug]
 
     # Metriche: da n8n (OTLP) + scraping Ollama e Redis
     metrics:

@@ -6,42 +6,12 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
+    uid: loki
     isDefault: true
     jsonData:
       # Maximum number of lines to show in log viewer
       maxLines: 1000
-      # Derived fields allow clicking on trace IDs in logs to jump to traces
-      derivedFields:
-        - datasourceUid: tempo
-          matcherRegex: '"trace_id":"(\w+)"'
-          name: TraceID
-          url: "$${__value.raw}"
 
-  # Tempo datasource for distributed tracing
-  - name: Tempo
-    type: tempo
-    access: proxy
-    url: http://tempo:3200
-    uid: tempo
-    jsonData:
-      # Enable trace to logs correlation
-      tracesToLogsV2:
-        datasourceUid: loki
-        # Query logs by trace_id
-        filterByTraceID: true
-        filterBySpanID: false
-        tags:
-          - key: trace_id
-            value: trace_id
-      # Node graph shows service dependencies
-      nodeGraph:
-        enabled: true
-      # Search configuration
-      search:
-        hide: false
-      # Service graph shows request flow between services
-      serviceMap:
-        datasourceUid: prometheus
 
   # Prometheus datasource for metrics
   - name: Prometheus
