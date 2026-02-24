@@ -86,7 +86,7 @@ services:
       - OTEL_SDK_DISABLED=false
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
-      - OTEL_RESOURCE_ATTRIBUTES=container.name=n8n
+      - OTEL_RESOURCE_ATTRIBUTES=container.name=n8n,container_name=n8n,service.name=n8n,service_name=n8n
       - OTEL_SERVICE_NAME=n8n
     networks:
       - rete_unica

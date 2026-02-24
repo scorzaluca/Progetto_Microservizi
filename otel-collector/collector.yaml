@@ -23,8 +23,8 @@ receivers:
     watch_observers: [docker_observer]
     receivers:
       filelog:
-        # Esclude otel-collector (feedback loop) e n8n (invia log via OTLP strutturato)
-        rule: type == "container" && name != "otel-collector" && name != "n8n"
+        # Esclude otel-collector (feedback loop) per evitare auto-scoping
+        rule: type == "container" && name != "otel-collector"
         config:
           include:
             - /var/lib/docker/containers/`container_id`/`container_id`-json.log
@@ -51,6 +51,8 @@ receivers:
         # Questi diventano resource attributes → Loki li indicizza come label
         resource_attributes:
           container.name: '`name`'
+          container_name: '`name`'
+          service.name: '`name`'
           container.id: '`container_id`'
           container.image.name: '`image`'
 
@@ -77,12 +79,27 @@ processors:
     keys:
       - log.iostream
 
-  # Resource: aggiunge attributi di sistema (facoltativo, rimosso per pulizia label)
+  # Resource: aggiunge attributi di sistema
   resource:
     attributes:
       - key: cluster
         value: "local-dev"
         action: insert
+
+  # Transform: unifica service.name e container.name
+  transform:
+    log_statements:
+      - context: resource
+        statements:
+          # Assicura che container_name esista prendendolo da container.name o service.name
+          - set(attributes["container_name"], attributes["container.name"]) where attributes["container_name"] == nil
+          - set(attributes["container_name"], attributes["service.name"]) where attributes["container_name"] == nil
+          - set(attributes["container_name"], attributes["service_name"]) where attributes["container_name"] == nil
+          # Forza la rimozione di QUALSIASI prefisso 'agente_interviewer_' da tutte le etichette interessate
+          - replace_pattern(attributes["container_name"], "^agente_interviewer_", "")
+          - replace_pattern(attributes["container.name"], "^agente_interviewer_", "")
+          - replace_pattern(attributes["service.name"], "^agente_interviewer_", "")
+          - replace_pattern(attributes["service_name"], "^agente_interviewer_", "")
 
 exporters:
   # Logs → Loki
@@ -108,7 +125,7 @@ service:
     # Log: da n8n (OTLP) + da tutti i container (receiver_creator con docker_observer)
     logs:
       receivers: [otlp, receiver_creator/docker]
-      processors: [groupbyattrs, resource, batch]
+      processors: [groupbyattrs, transform, resource, batch]
       exporters: [otlphttp/loki, debug]
 
     # Metriche: da n8n (OTLP) + scraping Ollama e Redis

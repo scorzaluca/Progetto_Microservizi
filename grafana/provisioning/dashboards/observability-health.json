@@ -74,7 +74,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(count_over_time({container_name=~\"n8n|redis|ollama\"} [5m]))",
+          "expr": "sum(count_over_time({container_name=~\"^n8n$|^redis$|^ollama$\"} [5m]))",
           "refId": "A",
           "instant": true
         }
@@ -210,7 +210,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (container_name) (count_over_time({container_name=~\"n8n|redis|ollama\"} [1m]))",
+          "expr": "sum by (container_name) (count_over_time({container_name=~\"^n8n$|^redis$|^ollama$\"} [1m]))",
           "legendFormat": "{{container_name}}",
           "refId": "A"
         }
@@ -275,7 +275,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (container_name) (count_over_time({container_name=~\"n8n|redis|ollama\"} [15m]))",
+          "expr": "sum by (container_name) (count_over_time({container_name=~\"^n8n$|^redis$|^ollama$\"} [15m]))",
           "legendFormat": "{{container_name}}",
           "refId": "A",
           "instant": true
@@ -313,7 +313,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{log_iostream=\"stderr\", container_name=~\"n8n|redis|ollama\"}",
+          "expr": "{log_iostream=\"stderr\", container_name=~\"^n8n$|^redis$|^ollama$\"}",
           "refId": "A"
         }
       ],
@@ -643,7 +643,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{container_name=~\"n8n|redis|ollama\"}",
+          "expr": "{container_name=~\"^n8n$|^redis$|^ollama$\"}",
           "refId": "A"
         }
       ],
