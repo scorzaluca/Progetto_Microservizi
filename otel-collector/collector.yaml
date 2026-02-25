@@ -56,9 +56,8 @@ receivers:
           container.id: '`container_id`'
           container.image.name: '`image`'
 
-  # Prometheus receiver: scraping metriche da Redis Exporter
-  # Ollama NON espone un endpoint /metrics Prometheus nativo,
-  # quindi lo scraping è limitato al Redis Exporter
+  # Prometheus receiver: scraping metriche da Redis Exporter e n8n
+  # Nota: Ollama v0.16.2 non espone metriche Prometheus (/metrics → 404)
   prometheus:
     config:
       scrape_configs:
@@ -66,6 +65,25 @@ receivers:
           scrape_interval: 10s
           static_configs:
             - targets: ['redis-exporter:9121']
+          relabel_configs:
+            - target_label: container_name
+              replacement: redis
+
+        - job_name: 'n8n'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['n8n:5678']
+          metrics_path: /metrics
+          relabel_configs:
+            - target_label: container_name
+              replacement: n8n
+
+  # Docker Stats: raccoglie metriche di risorse (CPU, RAM, Rete) da tutti i container
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    api_version: "1.45"
+    collection_interval: 15s
+    timeout: 10s
 
 processors:
   # Batch: raggruppa i record per efficienza di rete
@@ -128,8 +146,8 @@ service:
       processors: [groupbyattrs, transform, resource, batch]
       exporters: [otlphttp/loki, debug]
 
-    # Metriche: da n8n (OTLP) + scraping Ollama e Redis
+    # Metriche: da Redis Exporter + n8n + Ollama (scraping) + Docker Stats (risorse)
     metrics:
-      receivers: [otlp, prometheus]
+      receivers: [otlp, prometheus, docker_stats]
       processors: [resource, batch]
       exporters: [prometheusremotewrite, debug]

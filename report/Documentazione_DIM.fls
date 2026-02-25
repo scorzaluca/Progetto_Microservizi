@@ -319,7 +319,13 @@ INPUT Documentazione_DIM.toc
 INPUT C:\Users\emagi\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecrm1095.tfm
 OUTPUT Documentazione_DIM.toc
 INPUT C:\Users\emagi\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1095.tfm
+INPUT .\Documentazione_DIM.lof
+INPUT .\Documentazione_DIM.lof
+INPUT Documentazione_DIM.lof
 OUTPUT Documentazione_DIM.lof
+INPUT .\Documentazione_DIM.lot
+INPUT .\Documentazione_DIM.lot
+INPUT Documentazione_DIM.lot
 OUTPUT Documentazione_DIM.lot
 INPUT C:\Users\emagi\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecti1200.tfm
 INPUT C:\Users\emagi\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\tcrm1200.tfm

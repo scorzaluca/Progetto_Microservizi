@@ -370,7 +370,7 @@ Ogni agente possiede un tag di completamento fase (es. \texttt{[FASE\_1\_COMPLET
 
 \textbf{Ruolo:} Insieme di strumenti tecnici preposti al monitoraggio e alla telemetria del sistema.
 
-\textbf{Responsabilità:} OpenTelemetry Collector raccoglie log strutturati da n8n via OTLP e log da tutti gli altri container Docker via \texttt{receiver\_creator} con \texttt{docker\_observer}, oltre a fare scraping delle metriche Redis. I segnali vengono esportati verso Loki (log) e Prometheus (metriche). Grafana visualizza i due segnali con datasource preconfigurati.
+\textbf{Responsabilità:} OpenTelemetry Collector raccoglie log strutturati da n8n via OTLP e log da tutti gli altri container Docker via \texttt{receiver\_creator} con \texttt{docker\_observer}. Per le metriche, esegue scraping Prometheus sia del Redis Exporter (metriche Redis) sia dell'endpoint \texttt{/metrics} nativo di n8n (workflow attivi, memoria heap/RSS, event loop lag, handle attivi). I segnali vengono esportati verso Loki (log) e Prometheus (metriche). Grafana visualizza i due segnali con datasource preconfigurati.
 
 \section{Matrice di Tracciabilità Ruoli/Funzioni}
 
@@ -501,7 +501,7 @@ Tutti i container sono connessi alla rete bridge \texttt{rete\_unica}. Le dipend
 
 \section{Variabili d'Ambiente n8n}
 
-n8n è configurato per emettere log sulla console, che vengono poi raccolti dall'OpenTelemetry Collector:
+n8n è configurato per emettere telemetria (log e metriche OTLP) verso l'OpenTelemetry Collector e per esporre metriche applicative Prometheus:
 
 \begin{lstlisting}[language=bash]
 N8N_OTEL_ENABLED=true
@@ -509,7 +509,11 @@ N8N_OTEL_TRACING_ENABLED=false
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 N8N_LOG_OUTPUT=console
 N8N_LOG_LEVEL=info
+N8N_METRICS=true
+N8N_METRICS_INCLUDE_DEFAULT_METRICS=true
 \end{lstlisting}
+
+\textbf{Nota:} \texttt{N8N\_METRICS=true} abilita l'endpoint Prometheus su \texttt{:5678/metrics}, che espone metriche applicative come il conteggio dei workflow attivi, la memoria heap Node.js, la memoria RSS del processo, il lag dell'event loop e gli handle attivi. \texttt{N8N\_METRICS\_INCLUDE\_DEFAULT\_METRICS=true} include le metriche di sistema Node.js.
 
 % ────────────────────────────────────────────────────────────────────────────
 \chapter{Pipeline dei Workflow n8n}
@@ -697,9 +701,9 @@ Il Collector è configurato con i seguenti receiver:
 \toprule
 \textbf{Receiver} & \textbf{Tipo Segnale} & \textbf{Funzione} \\
 \midrule
-otlp (HTTP) & Log, Metriche & Riceve telemetria nativa strutturata da n8n \\
+otlp (HTTP) & Log, Metriche & Riceve telemetria nativa strutturata da n8n sulla porta 4318 \\
 receiver\_creator\newline con filelog & Log & Scopre i container Docker tramite \texttt{docker\_observer} e raccoglie i log (escluso n8n per evitare duplicati) \\
-prometheus (scrape) & Metriche & Fa scraping delle metriche di \texttt{redis-exporter:9121/metrics} \\
+prometheus (scrape) & Metriche & Fa scraping di \texttt{redis-exporter:9121/metrics} (metriche Redis) e \texttt{n8n:5678/metrics} (metriche applicative n8n: workflow attivi, heap, RSS, event loop) \\
 \bottomrule
 \end{tabularx}
 \caption{Receivers configurati nell'OpenTelemetry Collector}
@@ -745,9 +749,13 @@ Grafana Loki (v3.5.0) è il backend di log aggregation. Configurato in modalità
 
 \section{Prometheus: Metriche}
 
-Prometheus (v2.53.0) è il backend per le metriche. Non esegue scraping diretto dei target: le metriche arrivano esclusivamente via Remote Write dall'OTel Collector, che a sua volta fa scraping del Redis Exporter.
+Prometheus (v2.53.0) è il backend per le metriche. Non esegue scraping diretto dei target: le metriche arrivano esclusivamente via Remote Write dall'OTel Collector, che a sua volta fa scraping del Redis Exporter e dell'endpoint nativo di n8n.
 
-\textbf{Metriche disponibili:} Metriche Redis esposte dal \texttt{redis-exporter} (connessioni attive, memoria utilizzata, operazioni al secondo, chiavi per database, etc.).
+\textbf{Metriche disponibili:}
+\begin{itemize}
+  \item \textbf{Redis} (via redis-exporter): connessioni attive, memoria utilizzata, operazioni al secondo, chiavi per database, hit rate.
+  \item \textbf{n8n} (via endpoint \texttt{/metrics}): \texttt{n8n\_active\_workflow\_count}, \texttt{n8n\_nodejs\_heap\_size\_used\_bytes}, \texttt{n8n\_process\_resident\_memory\_bytes}, \texttt{n8n\_nodejs\_eventloop\_lag\_seconds}, \texttt{n8n\_nodejs\_active\_handles\_total}.
+\end{itemize}
 
 \section{Grafana: Visualizzazione e Dashboard}
 
@@ -761,7 +769,7 @@ Grafana (v12.2) è il frontend di visualizzazione, preconfigurato tramite provis
 \textbf{Datasource} & \textbf{Backend} & \textbf{Default} & \textbf{Funzionalità} \\
 \midrule
 Loki       & \texttt{loki:3100}       & Sì & Visualizzazione log centralizzati \\
-Prometheus & \texttt{prometheus:9090}  & No & PromQL per metriche Redis \\
+Prometheus & \texttt{prometheus:9090}  & No & PromQL per metriche Redis e n8n \\
 \bottomrule
 \end{tabularx}
 \caption{Datasource Grafana preconfigurati}

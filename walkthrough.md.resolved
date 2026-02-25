@@ -6,7 +6,7 @@ Walkthrough completo del progetto: un agente conversazionale DDD basato su LLM, 
 
 ## 1. Visione d'Insieme
 
-Il sistema è un **agente intelligente** che intervista l'utente per costruire un'architettura Domain-Driven Design. È composto da **9 container Docker** organizzati in 3 livelli funzionali, orchestrati da **5 workflow N8N**, con osservabilità completa su logs, traces e metriche.
+Il sistema è un **agente intelligente** che intervista l'utente per costruire un'architettura Domain-Driven Design. È composto da **8 container Docker** organizzati in 3 livelli funzionali, orchestrati da **5 workflow N8N**, con osservabilità completa su **Logs** e **Metriche**.
 
 ```mermaid
 graph TB
@@ -21,9 +21,8 @@ graph TB
     end
 
     subgraph "📊 Osservabilità"
-        OTEL["📡 OTel Collector<br/>Hub Telemetria · :4317/:4318"]
+        OTEL["📡 OTel Collector<br/>Hub Telemetria · :4318"]
         LOK["📝 Loki · :3100"]
-        TEM["🔍 Tempo · :3200"]
         PRO["📈 Prometheus · :9090"]
         GRA["📊 Grafana · :8080"]
         REX["📤 Redis Exporter · :9121"]
@@ -32,12 +31,13 @@ graph TB
     FE -->|"HTTP POST"| N8N
     N8N -->|"HTTP API"| OLL
     N8N -->|"GET/SET/DEL"| RED
-    N8N -.->|"OTLP :4318"| OTEL
+    N8N -.->|"OTLP :4318<br/>logs + metrics"| OTEL
+    OTEL -.->|"Scrape :5678<br/>/metrics"| N8N
     RED -.-> REX -.->|"Scrape :9121"| OTEL
     OTEL -->|"Logs"| LOK
-    OTEL -->|"Traces"| TEM
     OTEL -->|"Metrics"| PRO
-    GRA --> LOK & TEM & PRO
+    GRA -->|"LogQL"| LOK
+    GRA -->|"PromQL"| PRO
 
     style FE fill:#2563eb,stroke:#1d4ed8,color:#fff
     style N8N fill:#16a34a,stroke:#15803d,color:#fff
@@ -45,7 +45,6 @@ graph TB
     style RED fill:#dc2626,stroke:#b91c1c,color:#fff
     style OTEL fill:#ea580c,stroke:#c2410c,color:#fff
     style LOK fill:#eab308,stroke:#ca8a04,color:#000
-    style TEM fill:#0ea5e9,stroke:#0284c7,color:#fff
     style PRO fill:#e11d48,stroke:#be123c,color:#fff
     style GRA fill:#f97316,stroke:#ea580c,color:#fff
     style REX fill:#991b1b,stroke:#7f1d1d,color:#fff
@@ -60,7 +59,7 @@ graph TB
 
 ### 2.1 N8N — Orchestratore Workflow
 
-**Container**: `agente_interviewer_n8n` · **Porta**: `5678` · **Immagine**: `docker.n8n.io/n8nio/n8n`
+**Container**: `n8n` · **Porta**: `5678` · **Immagine**: `docker.n8n.io/n8nio/n8n`
 
 N8N è il cervello del sistema. Espone webhook HTTP che il frontend chiama, e orchestra tutta la logica dell'agente tramite 5 workflow (descritto in §3). Comunica con:
 
@@ -68,22 +67,26 @@ N8N è il cervello del sistema. Espone webhook HTTP che il frontend chiama, e or
 |---|---|---|
 | Ollama | HTTP API `:11434` | Inferenza LLM (domande DDD, generazione architettura) |
 | Redis | Redis Protocol `:6379` | Stato sessione, chat history, JSON architettura |
-| OTel Collector | OTLP HTTP `:4318` | Emette logs strutturati, traces e metriche |
+| OTel Collector | OTLP HTTP `:4318` | Emette logs strutturati e metriche OTLP |
+| OTel Collector | Prometheus `:5678/metrics` | Espone metriche applicative (workflow attivi, heap, RSS, event loop) |
 
-Configurazione chiave da [docker-compose.yml](file:///c:/Users/emagi/Documents/agent_1/Progetto_Microservizi/docker-compose.yml#L86-L103):
-- `OTEL_COLLECTOR_URL=http://otel-collector:4318` — abilita telemetria OTLP nativa
-- `GENERIC_TIMEZONE=Europe/Rome` — timezone per scheduling
+Configurazione chiave da [docker-compose.yml](file:///c:/Users/emagi/Documents/agent_1/Progetto_Microservizi/docker-compose.yml):
+- `N8N_OTEL_ENABLED=true` + `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318` — telemetria OTLP nativa
+- `N8N_METRICS=true` + `N8N_METRICS_INCLUDE_DEFAULT_METRICS=true` — endpoint Prometheus su `:5678/metrics`
 - Dipende da `redis`, `ollama`, `otel-collector`
 
 ### 2.2 Ollama — LLM Engine
 
-**Container**: `agente_interviewer_ollama` · **Porta**: `11434` · **Immagine**: `ollama/ollama`
+**Container**: `ollama` · **Porta**: `11434` · **Immagine**: `ollama/ollama`
 
 Esegue inferenza locale di modelli linguistici. Non ha dipendenze da altri servizi — è un servizio stateless che risponde a chiamate HTTP. I dati del modello sono persistiti nel volume `Data_Ollama`.
 
+> [!NOTE]
+> Ollama v0.16.2 non espone metriche Prometheus (`/metrics` → 404). Le versioni più recenti supportano l'endpoint nativo.
+
 ### 2.3 Redis — Session Store
 
-**Container**: `agente_interviewer_redis` · **Porta**: `6379` · **Immagine**: `redis:alpine`
+**Container**: `redis` · **Porta**: `6379` · **Immagine**: `redis:alpine`
 
 Redis è il **data layer** del sistema. Memorizza tutto lo stato conversazionale con queste chiavi:
 
@@ -254,12 +257,13 @@ stateDiagram-v2
 
 ## 5. Stack di Osservabilità — Deep Dive
 
-Lo stack implementa i **3 pilastri** dell'osservabilità: **Logs**, **Traces**, **Metrics**, con correlazione cross-segnale.
+Lo stack implementa i **2 pilastri** dell'osservabilità: **Logs** e **Metrics**, con pipeline centralizzata basata su OpenTelemetry Collector.
 
 ```mermaid
 flowchart LR
     subgraph Sources ["📤 Sorgenti"]
         S1["N8N<br/>OTLP nativo"]
+        S1b["N8N<br/>Prometheus /metrics"]
         S2["Docker Containers<br/>stdout/stderr"]
         S3["Redis Exporter<br/>Prometheus /metrics"]
     end
@@ -267,27 +271,24 @@ flowchart LR
     subgraph OTel ["📡 OpenTelemetry Collector"]
         direction TB
         subgraph Recv ["Receivers"]
-            R1["OTLP<br/>HTTP+gRPC"]
+            R1["OTLP<br/>HTTP :4318"]
             R2["Receiver Creator<br/>Dynamic Filelog"]
             R3["Prometheus<br/>Scraper"]
         end
         subgraph Proc ["Processors"]
-            P1["GroupByAttrs"]
-            P2["Resource<br/>+DDD attrs"]
-            P3["Batch<br/>1s / 100"]
+            P1["Resource<br/>+DDD attrs"]
+            P2["Batch<br/>1s / 100"]
         end
         subgraph Exp ["Exporters"]
             E1["→ Loki"]
-            E2["→ Tempo"]
-            E3["→ Prometheus"]
+            E2["→ Prometheus"]
         end
         Recv --> Proc --> Exp
     end
 
     subgraph Backends ["💾 Storage"]
         B1["📝 Loki<br/>TSDB v13"]
-        B2["🔍 Tempo<br/>Local+WAL"]
-        B3["📈 Prometheus<br/>TSDB"]
+        B2[" Prometheus<br/>TSDB"]
     end
 
     subgraph Viz ["📊 Visualizzazione"]
@@ -295,17 +296,16 @@ flowchart LR
     end
 
     S1 --> R1
+    S1b --> R3
     S2 --> R2
     S3 --> R3
     E1 --> B1
     E2 --> B2
-    E3 --> B3
     G -->|"LogQL"| B1
-    G -->|"TraceQL"| B2
-    G -->|"PromQL"| B3
-    B1 <-.->|"Logs↔Traces"| B2
+    G -->|"PromQL"| B2
 
     style S1 fill:#16a34a,color:#fff
+    style S1b fill:#16a34a,color:#fff
     style S2 fill:#2496ED,color:#fff
     style S3 fill:#991b1b,color:#fff
     style R1 fill:#ea580c,color:#fff
@@ -313,13 +313,10 @@ flowchart LR
     style R3 fill:#ea580c,color:#fff
     style P1 fill:#f59e0b,color:#000
     style P2 fill:#f59e0b,color:#000
-    style P3 fill:#f59e0b,color:#000
     style E1 fill:#d97706,color:#fff
     style E2 fill:#d97706,color:#fff
-    style E3 fill:#d97706,color:#fff
     style B1 fill:#eab308,color:#000
-    style B2 fill:#0ea5e9,color:#fff
-    style B3 fill:#e11d48,color:#fff
+    style B2 fill:#e11d48,color:#fff
     style G fill:#f97316,color:#fff
 ```
 
@@ -350,12 +347,23 @@ receiver_creator/docker:
 - I log Docker JSON (`{"log":"...","stream":"stdout","time":"..."}`) vengono parsati con 3 operatori pipeline
 - I resource attributes diventano **label indicizzate** in Loki
 
-#### 3 Pipeline indipendenti
+#### Prometheus Scraper — Metriche n8n & Redis
+
+Il receiver `prometheus` fa scraping di due endpoint:
+
+| Job | Target | Intervallo | Metriche |
+|---|---|---|---|
+| `redis` | `redis-exporter:9121` | 10s | Connessioni, memoria, operazioni/sec, chiavi, hit rate |
+| `n8n` | `n8n:5678/metrics` | 10s | `n8n_active_workflow_count`, heap, RSS, event loop lag, active handles |
+
+> [!NOTE]
+> Ollama v0.16.2 non espone metriche Prometheus. Lo scraper Ollama è stato rimosso per evitare errori nei log del Collector.
+
+#### 2 Pipeline indipendenti
 
 | Pipeline | Receivers | Processors | Exporters |
 |---|---|---|---|
-| **Logs** | `otlp` + `receiver_creator/docker` | groupbyattrs → resource → batch | `otlphttp/loki` + debug |
-| **Traces** | `otlp` | resource → batch | `otlp/tempo` + debug |
+| **Logs** | `otlp` + `receiver_creator/docker` | resource → batch | `otlphttp/loki` + debug |
 | **Metrics** | `otlp` + `prometheus` | resource → batch | `prometheusremotewrite` + debug |
 
 #### Resource Processor — Attributi DDD
@@ -381,51 +389,52 @@ Aggiunge a **tutti** i segnali:
 
 `service.name` · `container.name` · `container.id` · `container.image.name` · `log.iostream` · `domain` · `bounded_context`
 
-### 5.3 Tempo — Distributed Tracing
-
-**Config**: [tempo-config.yml](file:///c:/Users/emagi/Documents/agent_1/Progetto_Microservizi/tempo/tempo-config.yml)
-
-Riceve span via OTLP gRPC (`:4317`) dal Collector. Le traces provengono da N8N (ogni esecuzione workflow genera span).
-
-- **Query Frontend SLO**: 5 secondi per search e trace-by-ID
-- **Ingester**: blocchi max 5 minuti
-- **Compactor**: retention blocchi 1 ora
-- **Storage**: filesystem locale con WAL (Write-Ahead Log)
-
-### 5.4 Prometheus — Metrics
+### 5.3 Prometheus — Metrics Storage
 
 **Config**: [prometheus.yml](file:///c:/Users/emagi/Documents/agent_1/Progetto_Microservizi/prometheus/prometheus.yml)
 
 Configurazione minimale: **solo Remote Write receiver**, nessuno scraping diretto. Tutte le metriche arrivano dall'OTel Collector via `/api/v1/write`.
 
-```yaml
-# Le metriche arrivano via Remote Write dall'OTel Collector
-scrape_configs: []
-```
+**Metriche disponibili:**
 
-Metriche disponibili: Redis (connessioni, memoria, operazioni, keyspace, latenza) + N8N (workflow execution).
+| Sorgente | Metriche Principali |
+|---|---|
+| **Redis** (via redis-exporter) | Connessioni attive, memoria utilizzata, operazioni/sec, chiavi per database, hit rate |
+| **n8n** (via endpoint /metrics) | `n8n_active_workflow_count`, `n8n_nodejs_heap_size_used_bytes`, `n8n_process_resident_memory_bytes`, `n8n_nodejs_eventloop_lag_seconds`, `n8n_nodejs_active_handles_total` |
 
-### 5.5 Grafana — Correlazione Cross-Segnale
+### 5.4 Grafana — Visualizzazione e Dashboard
 
 **Config**: [datasources.yml](file:///c:/Users/emagi/Documents/agent_1/Progetto_Microservizi/grafana/provisioning/datasources/datasources.yml)
 
-3 datasource pre-provisioned con **correlazione bidirezionale**:
+2 datasource pre-provisioned:
 
 ```mermaid
 flowchart LR
-    L["📝 Loki<br/>(Default)"] <-->|"trace_id regex<br/>↔ TracesToLogs"| T["🔍 Tempo"]
-    T -->|"Service Map<br/>datasourceUid"| P["📈 Prometheus"]
+    L["📝 Loki<br/>(Default)"] --- G["📊 Grafana<br/>:8080"]
+    G --- P["� Prometheus"]
+
+    G -->|"LogQL"| L
+    G -->|"PromQL"| P
 
     style L fill:#eab308,color:#000
-    style T fill:#0ea5e9,color:#fff
     style P fill:#e11d48,color:#fff
+    style G fill:#f97316,color:#fff
 ```
 
-| Correlazione | Meccanismo | Effetto |
-|---|---|---|
-| **Logs → Traces** | Derived Field con regex `"trace_id":"(\w+)"` su Loki | Click su trace_id nel log → apre traccia in Tempo |
-| **Traces → Logs** | `tracesToLogsV2` con `filterByTraceID: true` su Tempo | Da una traccia, vedi tutti i log correlati in Loki |
-| **Traces → Metrics** | `serviceMap.datasourceUid: prometheus` su Tempo | Service Map con dipendenze e flusso richieste |
+| Datasource | Backend | Default | Query Language |
+|---|---|---|---|
+| Loki | `loki:3100` | ✅ Sì | LogQL |
+| Prometheus | `prometheus:9090` | No | PromQL |
+
+**Dashboard pre-provisioned** ([observability-health.json](file:///c:/Users/emagi/Documents/agent_1/Progetto_Microservizi/grafana/provisioning/dashboards/observability-health.json)):
+
+| Sezione | Pannelli |
+|---|---|
+| Stato Generale | Log totali, Redis uptime, n8n workflow attivi |
+| Log | Volume per container, log stderr |
+| Redis | Memoria, client connessi, comandi/sec, chiavi, hit rate |
+| n8n | Uptime processo, handle attivi, memoria heap/RSS, event loop lag |
+| Log Sistema | Stream completo |
 
 Grafana è configurato con accesso anonimo (`Admin`) su `http://localhost:8080`.
 
@@ -435,7 +444,7 @@ Grafana è configurato con accesso anonimo (`Admin`) su `http://localhost:8080`.
 
 ### Rete bridge
 
-Tutti i 9 container condividono la rete `rete_unica` (driver `bridge`), abilitando DNS resolution per nome servizio.
+Tutti gli 8 container condividono la rete `rete_unica` (driver `bridge`), abilitando DNS resolution per nome servizio.
 
 ### Volumi e persistenza
 
@@ -445,7 +454,6 @@ Tutti i 9 container condividono la rete `rete_unica` (driver `bridge`), abilitan
 | `./Data_Ollama` | Ollama | `/root/.ollama` | Modelli LLM scaricati |
 | `./Data_Redis` | Redis | `/data` | Dump RDB Redis |
 | `./.runtime/data/loki` | Loki | `/loki` | Chunks, indici, regole |
-| `./.runtime/data/tempo` | Tempo | `/tmp/tempo` | Blocchi trace, WAL |
 | `./.runtime/data/prometheus` | Prometheus | `/prometheus` | TSDB metriche |
 | `./.runtime/data/grafana` | Grafana | `/var/lib/grafana` | Dashboard, utenti |
 
@@ -458,8 +466,8 @@ Tutti i 9 container condividono la rete `rete_unica` (driver `bridge`), abilitan
 flowchart BT
     REDIS["Redis"] & OLLAMA["Ollama"] & OTEL["OTel Collector"] --> N8N["N8N"]
     REDIS --> REXP["Redis Exporter"]
-    LOKI["Loki"] & TEMPO["Tempo"] --> OTEL
-    LOKI & TEMPO & PROM["Prometheus"] --> GRAFANA["Grafana"]
+    LOKI["Loki"] --> OTEL
+    LOKI & PROM["Prometheus"] --> GRAFANA["Grafana"]
 
     style N8N fill:#16a34a,color:#fff
     style REDIS fill:#dc2626,color:#fff
@@ -467,7 +475,6 @@ flowchart BT
     style OTEL fill:#ea580c,color:#fff
     style REXP fill:#991b1b,color:#fff
     style LOKI fill:#eab308,color:#000
-    style TEMPO fill:#0ea5e9,color:#fff
     style PROM fill:#e11d48,color:#fff
     style GRAFANA fill:#f97316,color:#fff
 ```
@@ -476,14 +483,12 @@ flowchart BT
 
 | Porta | Servizio | Uso |
 |---|---|---|
-| `5678` | N8N | UI + Webhook API |
+| `5678` | N8N | UI + Webhook API + Prometheus /metrics |
 | `6379` | Redis | Session store |
 | `8080` | Grafana | Dashboard (→ :3000) |
 | `9090` | Prometheus | Metrics + Remote Write |
 | `9121` | Redis Exporter | `/metrics` |
 | `3100` | Loki | Log API + OTLP |
-| `3200` | Tempo | Trace Query API |
-| `4317` | OTel Collector | OTLP gRPC |
 | `4318` | OTel Collector | OTLP HTTP |
 | `11434` | Ollama | LLM API |
 
@@ -493,7 +498,7 @@ flowchart BT
 
 ```
 Progetto_Microservizi/
-├── docker-compose.yml              # 9 servizi Docker + rete bridge
+├── docker-compose.yml              # 8 servizi Docker + rete bridge
 ├── .gitignore                      # Esclude dati runtime e segreti
 ├── README.md                       # Documentazione completa
 ├── architecture_diagram.html       # Diagramma interattivo (apri nel browser)
@@ -514,15 +519,17 @@ Progetto_Microservizi/
 ├── loki/
 │   └── loki-config.yml             # Schema TSDB v13, OTLP labels
 │
-├── tempo/
-│   └── tempo-config.yml            # OTLP distributor, local storage
-│
 ├── prometheus/
 │   └── prometheus.yml              # Remote Write only
 │
 ├── grafana/provisioning/
-│   ├── datasources/datasources.yml # Loki + Tempo + Prometheus
-│   └── dashboards/dashboard.yml    # Auto-provisioning
+│   ├── datasources/datasources.yml # Loki + Prometheus
+│   └── dashboards/
+│       ├── dashboard.yml           # Auto-provisioning
+│       └── observability-health.json # Dashboard pre-configurata
+│
+├── report/
+│   └── Documentazione_DIM.tex      # Documentazione tecnica LaTeX
 │
 ├── Data_N8N/                       # 🔒 gitignored
 ├── Data_Ollama/                    # 🔒 gitignored
