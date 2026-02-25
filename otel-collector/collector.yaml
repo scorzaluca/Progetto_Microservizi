@@ -23,8 +23,8 @@ receivers:
     watch_observers: [docker_observer]
     receivers:
       filelog:
-        # Esclude otel-collector (feedback loop) per evitare auto-scoping e n8n per non duplicare i log
-        rule: type == "container" && name != "otel-collector"  && name != "n8n"
+        # Esclude otel-collector (feedback loop) per evitare auto-scoping
+        rule: type == "container" && name != "otel-collector"
         config:
           include:
             - /var/lib/docker/containers/`container_id`/`container_id`-json.log

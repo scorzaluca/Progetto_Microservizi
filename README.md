@@ -375,7 +375,7 @@ L'**OpenTelemetry Collector Contrib** (`otel/opentelemetry-collector-contrib:0.1
 | `receiver_creator/docker` | Dynamic Filelog | Tutti i container Docker | Logs (stdout/stderr) |
 | `prometheus` | Prometheus Scraper | Redis Exporter e n8n | Metrics |
 
-Il **Receiver Creator** è particolarmente sofisticato: crea **dinamicamente** un receiver `filelog` per **ogni container** scoperto dal `docker_observer`. La regola `type == "container" && name != "otel-collector" && name != "n8n"` esclude il collector stesso per evitare feedback loops e n8n per non duplicare i log. Per ogni container, il log path viene risolto dinamicamente:
+Il **Receiver Creator** è particolarmente sofisticato: crea **dinamicamente** un receiver `filelog` per **ogni container** scoperto dal `docker_observer`. La regola `type == "container" && name != "otel-collector"` esclude il collector stesso per evitare feedback loops. Per ogni container, il log path viene risolto dinamicamente:
 
 ```
 /var/lib/docker/containers/{container_id}/{container_id}-json.log
