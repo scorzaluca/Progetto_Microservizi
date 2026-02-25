@@ -24,7 +24,7 @@ receivers:
     receivers:
       filelog:
         # Esclude otel-collector (feedback loop) per evitare auto-scoping
-        rule: type == "container" && name != "otel-collector"
+        rule: type == "container" && name != "otel-collector"  && name != "n8n"
         config:
           include:
             - /var/lib/docker/containers/`container_id`/`container_id`-json.log
