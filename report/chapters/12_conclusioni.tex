@@ -7,7 +7,7 @@
 Il Domain Interviewer \& Modeler dimostra la fattibilità di un approccio completamente automatizzato alla scoperta del dominio e alla progettazione architetturale DDD tramite agenti LLM specializzati. I risultati principali possono essere sintetizzati nei seguenti punti:
 
 \begin{enumerate}
-  \item \textbf{Pipeline Multi-Agente Funzionante:} Cinque agenti intervistatori specializzati, un Project Controller di validazione e una catena di generazione (DDD Analyst + JSON Coder) cooperano per trasformare una conversazione in linguaggio naturale in un modello architetturale JSON strutturato e machine-readable.
+  \item \textbf{Pipeline Multi-Agente Funzionante:} Cinque agenti intervistatori specializzati, un orchestratore di validazione e una catena di generazione (DDD Analyst + JSON Coder) cooperano per trasformare una conversazione in linguaggio naturale in un modello architetturale JSON strutturato e machine-readable.
 
   \item \textbf{System Prompt Engineering Efficace:} La struttura a quattro sezioni (Role, Output Rules, Anti-Bleeding, Discovery Flow) con vincoli di inibizione espliciti si è dimostrata efficace nel mantenere gli agenti focalizzati sul proprio ambito tematico, riducendo significativamente il fenomeno di bleeding tra fasi.
 
@@ -22,11 +22,12 @@ Il Domain Interviewer \& Modeler dimostra la fattibilità di un approccio comple
 
 \subsection{Evoluzione dello Stack di Osservabilità}
 
-Lo stack attuale (OpenTelemetry Collector, Loki, Tempo, Prometheus, Grafana) è operativo ma può essere esteso con:
+Lo stack attuale (OpenTelemetry Collector, Loki, Prometheus, Grafana) è operativo ma può essere esteso con:
 \begin{itemize}
   \item Dashboard Grafana personalizzate per il monitoraggio delle sessioni di discovery (latenza per fase, token consumati, tasso di successo della generazione JSON).
   \item Regole di alerting per anomalie (es. generazione JSON fallita, latenza superiore a soglia).
   \item Metriche custom esposte da n8n per l'analisi delle performance degli agenti.
+  \item \textbf{Integrazione del tracing distribuito:} Estensione della pipeline con Grafana Tempo per il monitoraggio dei flussi di chiamata tra i microservizi.
 \end{itemize}
 
 \subsection{Validazione Automatica del JSON}
@@ -37,24 +38,25 @@ L'aggiunta di un nodo n8n di validazione post-generazione che verifica la confor
 
 L'estensione dei system prompt per supportare sessioni in lingue diverse dall'italiano (inglese, spagnolo, tedesco) amplierebbe l'applicabilità del DIM a contesti internazionali.
 
+\subsection{Evoluzione del Motore di Modifica Deterministico}
+
+L'attuale meccanismo di applicazione delle modifiche, basato sul \textit{Draft Decision Workflow}, può essere potenziato per estendere le capacità di manipolazione strutturale del JSON architetturale. L'obiettivo è evolvere la logica JavaScript deterministica per interpretare ed eseguire una gamma più vasta di operazioni richieste dal Modifier (es. ridenominazione massiva di entità, spostamento di Aggregate tra Bounded Context o ristrutturazione dei Domain Event), garantendo al contempo il mantenimento rigoroso dell'integrità del dato e dei vincoli di schema.
+
+\subsection{Potenziamento della Granularità Descrittiva}
+
+Le strutture definite in modo rigido per il documento Markdown (DDD Analyst) e per lo schema JSON (JSON Coder) costituiscono la spina dorsale informativa del sistema. Uno sviluppo futuro di alto valore consiste nell'estendere formalmente questi schemi per catturare una granularità ancora maggiore di dati estratti durante l'intervista. Questo potenziamento permetterebbe di includere dettagli più specifici nei documenti finali.
+
 \subsection{Integrazione con il Pipeline Multi-Agente}
 
 Il DIM è il primo agente di una pipeline più ampia. Gli sviluppi futuri prevedono l'integrazione con gli agenti downstream che consumano il JSON architetturale per:
 \begin{itemize}
-  \item Generazione automatica di diagrammi UML/C4 dai Bounded Context.
-  \item Scaffolding del codice sorgente dei microservizi basato sul modello di dominio.
-  \item Generazione di test di contratto (Contract Testing) basati sugli eventi DDD.
+  \item \textbf{Visualizzazione Automatica}: Traduzione del modello JSON in mappe visive e diagrammi tecnici per facilitare la comprensione dell'architettura.
+  \item \textbf{Generazione della Base di Codice}: Creazione automatica dello scheletro dei nuovi servizi, permettendo agli sviluppatori di iniziare a scrivere logica di business senza perdere tempo con la configurazione iniziale.
+  \item \textbf{Test di Comunicazione Intelligenti}: Generazione di test automatici che verificano che i diversi pezzi del puzzle (microservizi) parlino tra loro correttamente, evitando errori di integrazione.
 \end{itemize}
 
 \subsection{Persistenza Long-Term e Versioning}
 
 L'implementazione di un meccanismo di export/import delle sessioni (es. salvataggio su filesystem o database documentale) e di versioning del modello architetturale (storico delle modifiche con diff) consentirebbe la gestione di progetti di discovery complessi e multi-seduta.
 
-\subsection{Miglioramenti al Frontend}
 
-\begin{itemize}
-  \item Visualizzazione grafica del JSON architetturale (tree view interattiva, diagramma dei Bounded Context).
-  \item Progress bar della fase di discovery (indicatore visuale della fase corrente su 5).
-  \item Supporto al dark mode.
-  \item Export del modello in formati alternativi (YAML, PlantUML, Mermaid).
-\end{itemize}

@@ -44,70 +44,12 @@
     },
     {
       "parameters": {
-        "operation": "get",
-        "propertyName": "draft_data",
-        "key": "=draft_json:{{ $('Webhook').item.json.query.sessionId }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        416,
-        0
-      ],
-      "id": "6fb9c764-0b09-4491-b81e-b39c49635757",
-      "name": "Redis1",
-      "alwaysOutputData": true,
-      "credentials": {
-        "redis": {
-          "id": "G3AmE16QK8P1M12m",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "propertyName": "draft_status",
-        "key": "=draft_status:{{ $('Webhook').item.json.query.sessionId }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.redis",
-      "typeVersion": 1,
-      "position": [
-        624,
-        0
-      ],
-      "id": "e4d79d59-b322-420e-b1a1-fa12357753b9",
-      "name": "Redis2",
-      "alwaysOutputData": true,
-      "credentials": {
-        "redis": {
-          "id": "G3AmE16QK8P1M12m",
-          "name": "Redis account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "assignments": {
           "assignments": [
             {
               "id": "d284e795-9e1e-4cb4-911c-059ff351a031",
               "name": "discovery_json",
               "value": "={{ $('Redis').item.json.discovery_data || null }}",
-              "type": "string"
-            },
-            {
-              "id": "aaf6eddd-0b87-42a0-997f-45cb9178241f",
-              "name": "draft_json",
-              "value": "={{ $('Redis1').item.json.draft_data || null }}",
-              "type": "string"
-            },
-            {
-              "id": "9dbc1efb-dd6d-435d-b5d1-51fd0a9122e4",
-              "name": "draft_status",
-              "value": "={{ $('Redis2').item.json.draft_status || null }}",
               "type": "string"
             }
           ]
@@ -117,7 +59,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        832,
+        416,
         0
       ],
       "id": "2d838311-eb6f-4907-a313-b7137ad1c1b5",
@@ -132,7 +74,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1040,
+        624,
         0
       ],
       "id": "e3180d16-500d-42b5-8ad5-ae26933c013c",
@@ -153,28 +95,6 @@
       ]
     },
     "Redis": {
-      "main": [
-        [
-          {
-            "node": "Redis1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redis1": {
-      "main": [
-        [
-          {
-            "node": "Redis2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redis2": {
       "main": [
         [
           {
@@ -203,7 +123,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "e352ee3e-021b-42f8-b8d8-66a9345be612",
+  "versionId": "2bfd8099-0c80-4502-873d-dac9fc4a4e20",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"

@@ -3,24 +3,25 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Agenti Intervistatori e relative fasi dell'intervista DDD}}{14}{table.caption.4}%
-\contentsline {table}{\numberline {4.2}{\ignorespaces Matrice di tracciabilità Ruoli/Funzioni del sistema}}{16}{table.caption.5}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Agenti Intervistatori e relative fasi dell'intervista DDD}}{13}{table.caption.4}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Matrice di tracciabilità Ruoli/Funzioni del sistema}}{15}{table.caption.5}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {6.1}{\ignorespaces Dettaglio completo dei servizi nel Docker Compose}}{21}{table.caption.6}%
-\contentsline {table}{\numberline {6.2}{\ignorespaces Mappatura completa dei volumi Docker}}{22}{table.caption.7}%
+\contentsline {table}{\numberline {6.1}{\ignorespaces Dettaglio completo dei servizi nel Docker Compose}}{21}{table.caption.8}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces Mappatura completa dei volumi Docker}}{22}{table.caption.9}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {7.1}{\ignorespaces Mappa completa dei workflow n8n}}{24}{table.caption.8}%
-\contentsline {table}{\numberline {7.2}{\ignorespaces Configurazione completa degli agenti nel Discovery Workflow}}{26}{table.caption.9}%
+\contentsline {table}{\numberline {7.1}{\ignorespaces Mappa completa dei workflow n8n}}{24}{table.caption.10}%
+\contentsline {table}{\numberline {7.2}{\ignorespaces Configurazione completa degli agenti nel Discovery Workflow}}{26}{table.caption.13}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {8.1}{\ignorespaces Animazioni di feedback nel frontend}}{29}{table.caption.10}%
-\contentsline {table}{\numberline {8.2}{\ignorespaces Endpoint di comunicazione Frontend $\to $ n8n}}{30}{table.caption.11}%
+\contentsline {table}{\numberline {8.1}{\ignorespaces Animazioni di feedback nel frontend}}{30}{table.caption.16}%
+\contentsline {table}{\numberline {8.2}{\ignorespaces Endpoint di comunicazione Frontend $\to $ n8n}}{31}{table.caption.17}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {10.1}{\ignorespaces Receivers configurati nell'OpenTelemetry Collector}}{36}{table.caption.13}%
-\contentsline {table}{\numberline {10.2}{\ignorespaces Exporters configurati nell'OpenTelemetry Collector}}{37}{table.caption.14}%
-\contentsline {table}{\numberline {10.3}{\ignorespaces Datasource Grafana preconfigurati}}{38}{table.caption.15}%
+\contentsline {table}{\numberline {10.1}{\ignorespaces Receivers configurati nell'OpenTelemetry Collector}}{37}{table.caption.19}%
+\contentsline {table}{\numberline {10.2}{\ignorespaces Exporters configurati nell'OpenTelemetry Collector}}{38}{table.caption.20}%
+\contentsline {table}{\numberline {10.3}{\ignorespaces Datasource Grafana preconfigurati}}{40}{table.caption.24}%
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {11.1}{\ignorespaces Matrice dei compromessi progettuali}}{41}{table.caption.18}%
+\contentsline {table}{\numberline {11.1}{\ignorespaces Matrice dei compromessi progettuali}}{43}{table.caption.27}%
+\addvspace {10\p@ }
 \addvspace {10\p@ }
 \contentsfinish 

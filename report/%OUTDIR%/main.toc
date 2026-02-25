@@ -2,40 +2,40 @@
 \contentsline {chapter}{\numberline {1}Executive Summary}{6}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Visione Strategica}{6}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Value Proposition}{6}{section.1.2}%
-\contentsline {section}{\numberline {1.3}Sintesi Tecnica}{7}{section.1.3}%
-\contentsline {chapter}{\numberline {2}Analisi dello Scenario e Business Case}{8}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Razionale del Progetto}{8}{section.2.1}%
-\contentsline {section}{\numberline {2.2}Analisi dei Pain Points}{8}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Rischi e Impatto Operativo}{9}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Business Case}{9}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Confronto con le Alternative Esistenti}{9}{section.2.5}%
-\contentsline {chapter}{\numberline {3}Obiettivi e Requisiti del Sistema}{11}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Obiettivi Strategici}{11}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Requisiti Funzionali}{11}{section.3.2}%
-\contentsline {subsection}{\numberline {3.2.1}RF-01: Pipeline di Intervista a 5 Fasi}{11}{subsection.3.2.1}%
-\contentsline {subsection}{\numberline {3.2.2}RF-02: Validazione Automatica di Completezza}{11}{subsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.2.3}RF-03: Routing Intelligente}{12}{subsection.3.2.3}%
-\contentsline {subsection}{\numberline {3.2.4}RF-04: Generazione Architetturale}{12}{subsection.3.2.4}%
-\contentsline {subsection}{\numberline {3.2.5}RF-05: Raffinamento del Modello}{12}{subsection.3.2.5}%
-\contentsline {subsection}{\numberline {3.2.6}RF-06: Gestione del Ciclo di Vita delle Bozze}{12}{subsection.3.2.6}%
-\contentsline {subsection}{\numberline {3.2.7}RF-07: Frontend Chat}{12}{subsection.3.2.7}%
-\contentsline {subsection}{\numberline {3.2.8}RF-08: Stato Conversazionale Persistente}{13}{subsection.3.2.8}%
-\contentsline {section}{\numberline {3.3}Requisiti Non Funzionali}{13}{section.3.3}%
-\contentsline {chapter}{\numberline {4}Stakeholder e Ruoli}{14}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Business Stakeholder (Utente Intervistato)}{14}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Agenti Intervistatori (Discovery Pipeline)}{14}{section.4.2}%
-\contentsline {subsection}{\numberline {4.2.1}Regole Comuni agli Agenti Intervistatori}{15}{subsection.4.2.1}%
-\contentsline {section}{\numberline {4.3}Agente di Validazione (Orchestrator)}{15}{section.4.3}%
-\contentsline {section}{\numberline {4.4}Agenti di Elaborazione (Post-Discovery)}{15}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Stack di Osservabilità}{16}{section.4.5}%
-\contentsline {section}{\numberline {4.6}Matrice di Tracciabilità Ruoli/Funzioni}{16}{section.4.6}%
-\contentsline {chapter}{\numberline {5}Architettura del Sistema}{17}{chapter.5}%
+\contentsline {section}{\numberline {1.3}Sintesi Tecnica}{6}{section.1.3}%
+\contentsline {chapter}{\numberline {2}Analisi dello Scenario e Business Case}{7}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Razionale del Progetto}{7}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Analisi dei Pain Points}{7}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Rischi e Impatto Operativo}{8}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Business Case}{8}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Confronto con le Alternative Esistenti}{8}{section.2.5}%
+\contentsline {chapter}{\numberline {3}Obiettivi e Requisiti del Sistema}{10}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Obiettivi Strategici}{10}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Requisiti Funzionali}{10}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}RF-01: Pipeline di Intervista a 5 Fasi}{10}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}RF-02: Validazione Automatica di Completezza}{10}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}RF-03: Routing Intelligente}{10}{subsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.2.4}RF-04: Generazione Architetturale}{11}{subsection.3.2.4}%
+\contentsline {subsection}{\numberline {3.2.5}RF-05: Raffinamento del Modello}{11}{subsection.3.2.5}%
+\contentsline {subsection}{\numberline {3.2.6}RF-06: Gestione del Ciclo di Vita delle Bozze}{11}{subsection.3.2.6}%
+\contentsline {subsection}{\numberline {3.2.7}RF-07: Frontend Chat}{11}{subsection.3.2.7}%
+\contentsline {subsection}{\numberline {3.2.8}RF-08: Stato Conversazionale Persistente}{11}{subsection.3.2.8}%
+\contentsline {section}{\numberline {3.3}Requisiti Non Funzionali}{12}{section.3.3}%
+\contentsline {chapter}{\numberline {4}Stakeholder e Ruoli}{13}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Business Stakeholder (Utente Intervistato)}{13}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Agenti Intervistatori (Discovery Pipeline)}{13}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Regole Comuni agli Agenti Intervistatori}{14}{subsection.4.2.1}%
+\contentsline {section}{\numberline {4.3}Agente di Validazione (Orchestrator)}{14}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Agenti di Elaborazione (Post-Discovery)}{14}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Stack di Osservabilità}{15}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Matrice di Tracciabilità Ruoli/Funzioni}{15}{section.4.6}%
+\contentsline {chapter}{\numberline {5}Architettura del Sistema}{16}{chapter.5}%
 \contentsline {section}{\numberline {5.1}Visione d'Insieme}{17}{section.5.1}%
-\contentsline {section}{\numberline {5.2}I Pilastri Progettuali}{18}{section.5.2}%
-\contentsline {subsection}{\numberline {5.2.1}Orchestrazione via Workflow (n8n)}{18}{subsection.5.2.1}%
+\contentsline {section}{\numberline {5.2}I Pilastri Progettuali}{17}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Orchestrazione via Workflow (n8n)}{17}{subsection.5.2.1}%
 \contentsline {subsection}{\numberline {5.2.2}State Management Centralizzato (Redis)}{18}{subsection.5.2.2}%
 \contentsline {subsection}{\numberline {5.2.3}Agenti Specializzati con System Prompt}{18}{subsection.5.2.3}%
-\contentsline {subsection}{\numberline {5.2.4}Osservabilità Nativa}{19}{subsection.5.2.4}%
+\contentsline {subsection}{\numberline {5.2.4}Osservabilità Nativa}{18}{subsection.5.2.4}%
 \contentsline {section}{\numberline {5.3}Motivazioni delle scelte architetturali}{19}{section.5.3}%
 \contentsline {section}{\numberline {5.4}Flusso di Comunicazione End-to-End}{19}{section.5.4}%
 \contentsline {chapter}{\numberline {6}Deployment e Containerizzazione Docker}{21}{chapter.6}%
@@ -44,7 +44,7 @@
 \contentsline {subsection}{\numberline {6.2.1}Catena di Dipendenze e Ordine di Avvio}{22}{subsection.6.2.1}%
 \contentsline {section}{\numberline {6.3}Volumi e Persistenza dei Dati}{22}{section.6.3}%
 \contentsline {section}{\numberline {6.4}Variabili d'Ambiente Chiave}{22}{section.6.4}%
-\contentsline {subsection}{\numberline {6.4.1}n8n}{23}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.1}n8n}{22}{subsection.6.4.1}%
 \contentsline {subsection}{\numberline {6.4.2}Grafana}{23}{subsection.6.4.2}%
 \contentsline {section}{\numberline {6.5}Politiche di Restart}{23}{section.6.5}%
 \contentsline {chapter}{\numberline {7}Pipeline dei Workflow n8n}{24}{chapter.7}%
@@ -52,63 +52,70 @@
 \contentsline {section}{\numberline {7.2}Routing Workflow}{24}{section.7.2}%
 \contentsline {subsection}{\numberline {7.2.1}Logica di Routing Dettagliata}{24}{subsection.7.2.1}%
 \contentsline {section}{\numberline {7.3}Discovery Workflow}{25}{section.7.3}%
-\contentsline {subsection}{\numberline {7.3.1}Flusso di Esecuzione}{25}{subsection.7.3.1}%
+\contentsline {subsection}{\numberline {7.3.1}Flusso di Esecuzione}{26}{subsection.7.3.1}%
 \contentsline {subsection}{\numberline {7.3.2}Configurazione degli Agenti}{26}{subsection.7.3.2}%
-\contentsline {section}{\numberline {7.4}Refinement Workflow}{26}{section.7.4}%
-\contentsline {subsection}{\numberline {7.4.1}Modalità Explain (Spiegazione)}{26}{subsection.7.4.1}%
-\contentsline {subsection}{\numberline {7.4.2}Modalità Modify (Modifica)}{26}{subsection.7.4.2}%
-\contentsline {section}{\numberline {7.5}Polling Workflow}{27}{section.7.5}%
-\contentsline {section}{\numberline {7.6}Draft Decision Workflow}{27}{section.7.6}%
-\contentsline {section}{\numberline {7.7}Comunicazione tra Workflow}{27}{section.7.7}%
-\contentsline {chapter}{\numberline {8}Frontend Chat}{28}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Layout e Design}{28}{section.8.1}%
-\contentsline {section}{\numberline {8.2}Gestione delle Sessioni}{28}{section.8.2}%
-\contentsline {section}{\numberline {8.3}Rendering Differenziato dei Messaggi}{28}{section.8.3}%
-\contentsline {section}{\numberline {8.4}Feedback Visuale e Animazioni}{29}{section.8.4}%
-\contentsline {section}{\numberline {8.5}Pulsanti Inline e Selezione Modalità}{29}{section.8.5}%
-\contentsline {section}{\numberline {8.6}Meccanismo di Draft con Double-Check}{29}{section.8.6}%
-\contentsline {section}{\numberline {8.7}Comunicazione con il Backend}{30}{section.8.7}%
-\contentsline {section}{\numberline {8.8}Gestione degli Errori}{30}{section.8.8}%
-\contentsline {chapter}{\numberline {9}Design dei System Prompt}{31}{chapter.9}%
-\contentsline {section}{\numberline {9.1}Struttura Comune dei System Prompt Intervistatori}{31}{section.9.1}%
-\contentsline {section}{\numberline {9.2}Dettaglio per Fase}{32}{section.9.2}%
-\contentsline {subsection}{\numberline {9.2.1}Fase 1 --- Strategic Analysis}{32}{subsection.9.2.1}%
-\contentsline {subsection}{\numberline {9.2.2}Fase 2 --- Boundaries and Language}{32}{subsection.9.2.2}%
-\contentsline {subsection}{\numberline {9.2.3}Fase 3 --- EDA Integration}{32}{subsection.9.2.3}%
-\contentsline {subsection}{\numberline {9.2.4}Fase 4 --- Tactical Patterns}{32}{subsection.9.2.4}%
-\contentsline {subsection}{\numberline {9.2.5}Fase 5 --- Technical Excellence \& Resilience}{33}{subsection.9.2.5}%
-\contentsline {section}{\numberline {9.3}System Prompt dell'Orchestrator}{33}{section.9.3}%
-\contentsline {section}{\numberline {9.4}System Prompt del DDD Analyst}{33}{section.9.4}%
+\contentsline {section}{\numberline {7.4}Refinement Workflow}{27}{section.7.4}%
+\contentsline {subsection}{\numberline {7.4.1}Modalità Explain (Spiegazione)}{27}{subsection.7.4.1}%
+\contentsline {subsection}{\numberline {7.4.2}Modalità Modify (Modifica)}{27}{subsection.7.4.2}%
+\contentsline {section}{\numberline {7.5}Polling Workflow}{28}{section.7.5}%
+\contentsline {section}{\numberline {7.6}Draft Decision Workflow}{28}{section.7.6}%
+\contentsline {section}{\numberline {7.7}Comunicazione tra Workflow}{28}{section.7.7}%
+\contentsline {chapter}{\numberline {8}Frontend Chat}{29}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Layout e Design}{29}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Gestione delle Sessioni}{29}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Rendering Differenziato dei Messaggi}{30}{section.8.3}%
+\contentsline {section}{\numberline {8.4}Feedback Visuale e Animazioni}{30}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Pulsanti Inline e Selezione Modalità}{30}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Meccanismo di Draft con Double-Check}{30}{section.8.6}%
+\contentsline {section}{\numberline {8.7}Comunicazione con il Backend}{31}{section.8.7}%
+\contentsline {section}{\numberline {8.8}Gestione degli Errori}{31}{section.8.8}%
+\contentsline {chapter}{\numberline {9}Design dei System Prompt}{32}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Struttura Comune dei System Prompt Intervistatori}{32}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Dettaglio per Fase}{33}{section.9.2}%
+\contentsline {subsection}{\numberline {9.2.1}Fase 1 --- Strategic Analysis}{33}{subsection.9.2.1}%
+\contentsline {subsection}{\numberline {9.2.2}Fase 2 --- Boundaries and Language}{33}{subsection.9.2.2}%
+\contentsline {subsection}{\numberline {9.2.3}Fase 3 --- EDA Integration}{33}{subsection.9.2.3}%
+\contentsline {subsection}{\numberline {9.2.4}Fase 4 --- Tactical Patterns}{33}{subsection.9.2.4}%
+\contentsline {subsection}{\numberline {9.2.5}Fase 5 --- Technical Excellence \& Resilience}{34}{subsection.9.2.5}%
+\contentsline {section}{\numberline {9.3}System Prompt dell'Orchestrator}{34}{section.9.3}%
+\contentsline {section}{\numberline {9.4}System Prompt del DDD Analyst}{34}{section.9.4}%
 \contentsline {section}{\numberline {9.5}System Prompt del JSON Coder}{34}{section.9.5}%
-\contentsline {section}{\numberline {9.6}System Prompt degli Agenti di Refinement}{34}{section.9.6}%
-\contentsline {subsection}{\numberline {9.6.1}Modifier}{34}{subsection.9.6.1}%
-\contentsline {subsection}{\numberline {9.6.2}Explainer}{34}{subsection.9.6.2}%
-\contentsline {chapter}{\numberline {10}Osservabilità}{36}{chapter.10}%
-\contentsline {section}{\numberline {10.1}OpenTelemetry Collector: L'Hub Centrale}{36}{section.10.1}%
-\contentsline {subsection}{\numberline {10.1.1}Receivers (Sorgenti Dati)}{36}{subsection.10.1.1}%
-\contentsline {subsection}{\numberline {10.1.2}Processors (Elaborazione)}{36}{subsection.10.1.2}%
-\contentsline {subsection}{\numberline {10.1.3}Exporters (Destinazioni)}{37}{subsection.10.1.3}%
-\contentsline {section}{\numberline {10.2}Loki: Aggregazione Log}{37}{section.10.2}%
-\contentsline {section}{\numberline {10.3}Prometheus: Metriche}{37}{section.10.3}%
-\contentsline {section}{\numberline {10.4}Grafana: Visualizzazione e Dashboard}{38}{section.10.4}%
-\contentsline {chapter}{\numberline {11}Problemi, Soluzioni, Limiti e Compromessi}{39}{chapter.11}%
-\contentsline {section}{\numberline {11.1}Problemi Incontrati e Soluzioni}{39}{section.11.1}%
-\contentsline {subsection}{\numberline {11.1.1}Gestione del Contesto LLM nelle Conversazioni Multi-Fase}{39}{subsection.11.1.1}%
-\contentsline {subsection}{\numberline {11.1.2}Latenza della Generazione del Modello}{39}{subsection.11.1.2}%
-\contentsline {subsection}{\numberline {11.1.3}Validità del JSON Generato}{39}{subsection.11.1.3}%
-\contentsline {subsection}{\numberline {11.1.4}Anti-Bleeding tra Fasi}{40}{subsection.11.1.4}%
-\contentsline {subsection}{\numberline {11.1.5}Evasività dell'Utente}{40}{subsection.11.1.5}%
-\contentsline {section}{\numberline {11.2}Limiti del Sistema}{40}{section.11.2}%
-\contentsline {subsection}{\numberline {11.2.1}Limiti Strutturali}{41}{subsection.11.2.1}%
-\contentsline {subsection}{\numberline {11.2.2}Limiti Legati all'Inferenza Locale}{41}{subsection.11.2.2}%
-\contentsline {section}{\numberline {11.3}Compromessi Progettuali}{41}{section.11.3}%
-\contentsline {chapter}{\numberline {12}Conclusioni e Sviluppi Futuri}{42}{chapter.12}%
-\contentsline {section}{\numberline {12.1}Sintesi dei Risultati}{42}{section.12.1}%
-\contentsline {section}{\numberline {12.2}Sviluppi Futuri}{42}{section.12.2}%
-\contentsline {subsection}{\numberline {12.2.1}Evoluzione dello Stack di Osservabilità}{42}{subsection.12.2.1}%
-\contentsline {subsection}{\numberline {12.2.2}Validazione Automatica del JSON}{43}{subsection.12.2.2}%
-\contentsline {subsection}{\numberline {12.2.3}Supporto Multi-Lingua}{43}{subsection.12.2.3}%
-\contentsline {subsection}{\numberline {12.2.4}Integrazione con il Pipeline Multi-Agente}{43}{subsection.12.2.4}%
-\contentsline {subsection}{\numberline {12.2.5}Persistenza Long-Term e Versioning}{43}{subsection.12.2.5}%
-\contentsline {subsection}{\numberline {12.2.6}Miglioramenti al Frontend}{43}{subsection.12.2.6}%
+\contentsline {section}{\numberline {9.6}System Prompt degli Agenti di Refinement}{35}{section.9.6}%
+\contentsline {subsection}{\numberline {9.6.1}Modifier}{35}{subsection.9.6.1}%
+\contentsline {subsection}{\numberline {9.6.2}Explainer}{35}{subsection.9.6.2}%
+\contentsline {chapter}{\numberline {10}Osservabilità}{37}{chapter.10}%
+\contentsline {section}{\numberline {10.1}OpenTelemetry Collector: L'Hub Centrale}{37}{section.10.1}%
+\contentsline {subsection}{\numberline {10.1.1}Receivers (Sorgenti Dati)}{37}{subsection.10.1.1}%
+\contentsline {subsection}{\numberline {10.1.2}Processors (Elaborazione)}{37}{subsection.10.1.2}%
+\contentsline {subsection}{\numberline {10.1.3}Exporters (Destinazioni)}{38}{subsection.10.1.3}%
+\contentsline {section}{\numberline {10.2}Loki: Aggregazione Log}{38}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Prometheus: Metriche}{39}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Grafana: Visualizzazione e Dashboard}{40}{section.10.4}%
+\contentsline {chapter}{\numberline {11}Problemi, Soluzioni, Limiti e Compromessi}{41}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Problemi Incontrati e Soluzioni}{41}{section.11.1}%
+\contentsline {subsection}{\numberline {11.1.1}Gestione del Contesto LLM nelle Conversazioni Multi-Fase}{41}{subsection.11.1.1}%
+\contentsline {subsection}{\numberline {11.1.2}Latenza della Generazione del Modello}{41}{subsection.11.1.2}%
+\contentsline {subsection}{\numberline {11.1.3}Validità del JSON Generato}{42}{subsection.11.1.3}%
+\contentsline {subsection}{\numberline {11.1.4}Anti-Bleeding tra Fasi}{42}{subsection.11.1.4}%
+\contentsline {subsection}{\numberline {11.1.5}Evasività dell'Utente}{42}{subsection.11.1.5}%
+\contentsline {section}{\numberline {11.2}Limiti del Sistema}{43}{section.11.2}%
+\contentsline {subsection}{\numberline {11.2.1}Limiti Strutturali}{43}{subsection.11.2.1}%
+\contentsline {subsection}{\numberline {11.2.2}Limiti Legati all'Inferenza Locale}{43}{subsection.11.2.2}%
+\contentsline {section}{\numberline {11.3}Compromessi Progettuali}{43}{section.11.3}%
+\contentsline {chapter}{\numberline {12}Conclusioni e Sviluppi Futuri}{44}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Sintesi dei Risultati}{44}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Sviluppi Futuri}{44}{section.12.2}%
+\contentsline {subsection}{\numberline {12.2.1}Evoluzione dello Stack di Osservabilità}{44}{subsection.12.2.1}%
+\contentsline {subsection}{\numberline {12.2.2}Validazione Automatica del JSON}{45}{subsection.12.2.2}%
+\contentsline {subsection}{\numberline {12.2.3}Supporto Multi-Lingua}{45}{subsection.12.2.3}%
+\contentsline {subsection}{\numberline {12.2.4}Evoluzione del Motore di Modifica Deterministico}{45}{subsection.12.2.4}%
+\contentsline {subsection}{\numberline {12.2.5}Potenziamento della Granularità Descrittiva}{45}{subsection.12.2.5}%
+\contentsline {subsection}{\numberline {12.2.6}Integrazione con il Pipeline Multi-Agente}{45}{subsection.12.2.6}%
+\contentsline {subsection}{\numberline {12.2.7}Persistenza Long-Term e Versioning}{45}{subsection.12.2.7}%
+\contentsline {chapter}{\numberline {13}Caso di Studio: DocOnTime}{46}{chapter.13}%
+\contentsline {section}{\numberline {13.1}Fasi di Discovery e Intervista}{46}{section.13.1}%
+\contentsline {section}{\numberline {13.2}Output e Modello Architetturale}{47}{section.13.2}%
+\contentsline {section}{\numberline {13.3}Fase di Spiegazione}{48}{section.13.3}%
+\contentsline {section}{\numberline {13.4}Fase di Modifica}{48}{section.13.4}%
+\contentsline {section}{\numberline {13.5}Confronto Modelli JSON}{49}{section.13.5}%
 \contentsfinish 

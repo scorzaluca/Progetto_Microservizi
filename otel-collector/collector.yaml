@@ -16,14 +16,14 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
 
-  # Receiver Creator: crea DINAMICAMENTE un filelog receiver per ogni container
-  # scoperto dal docker_observer. Ogni receiver ha il NOME del container come
+  # Receiver Creator: crea dinamicamente un filelog receiver per ogni container
+  # scoperto dal docker_observer. Ogni receiver ha il nome del container come
   # resource attribute → diventa label in Loki → leggibile in Grafana
   receiver_creator/docker:
     watch_observers: [docker_observer]
     receivers:
       filelog:
-        # Esclude otel-collector (feedback loop) per evitare auto-scoping
+        # Esclude otel-collector (feedback loop) per evitare auto-scoping e n8n per non duplicare i log
         rule: type == "container" && name != "otel-collector"  && name != "n8n"
         config:
           include:
@@ -31,7 +31,7 @@ receivers:
           start_at: beginning
           include_file_path: true
           operators:
-            # I Docker log JSON tipo {"log":"...","stream":"stdout","time":"..."}
+            # I Docker log sono JSON
             - type: json_parser
               id: docker-json-parser
               timestamp:
@@ -57,7 +57,7 @@ receivers:
           container.image.name: '`image`'
 
   # Prometheus receiver: scraping metriche da Redis Exporter e n8n
-  # Nota: Ollama v0.16.2 non espone metriche Prometheus (/metrics → 404)
+  # Ollama v0.16.2 non espone metriche Prometheus
   prometheus:
     config:
       scrape_configs:
@@ -106,7 +106,7 @@ processors:
           - set(attributes["container_name"], attributes["container.name"]) where attributes["container_name"] == nil
           - set(attributes["container_name"], attributes["service.name"]) where attributes["container_name"] == nil
           - set(attributes["container_name"], attributes["service_name"]) where attributes["container_name"] == nil
-          # Forza la rimozione di QUALSIASI prefisso 'agente_interviewer_' da tutte le etichette interessate
+          # Rimuove qualsiasi prefisso 'agente_interviewer_' da tutte le etichette interessate
           - replace_pattern(attributes["container_name"], "^agente_interviewer_", "")
           - replace_pattern(attributes["container.name"], "^agente_interviewer_", "")
           - replace_pattern(attributes["service.name"], "^agente_interviewer_", "")
@@ -139,7 +139,7 @@ service:
       processors: [groupbyattrs, transform, resource, batch]
       exporters: [otlphttp/loki, debug]
 
-    # Metriche: da Redis Exporter + n8n + Ollama (scraping) 
+    # Metriche: da Redis Exporter e n8n 
     metrics:
       receivers: [otlp, prometheus]
       processors: [resource, batch]

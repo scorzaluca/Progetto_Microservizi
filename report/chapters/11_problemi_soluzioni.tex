@@ -8,7 +8,7 @@ Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del D
 
 \subsection{Gestione del Contesto LLM nelle Conversazioni Multi-Fase}
 
-\textbf{Problema:} Una sessione di discovery completa può generare centinaia di messaggi attraverso cinque fasi. Se tutti i messaggi venissero inclusi nel contesto LLM degli agenti delle fasi successive, il context window sarebbe saturato rapidamente, causando degradazione della qualità delle risposte o errori di troncamento.
+\textbf{Problema:} Una sessione di discovery completa può generare decine di messaggi attraverso cinque fasi. Se tutti i messaggi venissero inclusi nel contesto LLM degli agenti delle fasi successive, il context window sarebbe saturato rapidamente, causando degradazione della qualità delle risposte o errori di troncamento.
 
 \textbf{Soluzione:} Memory window crescente per fase (10 $\to$ 20 $\to$ 30 $\to$ 40 $\to$ 50 messaggi) tramite il nodo \texttt{memoryRedisChat} di n8n. Ogni agente vede solo una finestra di contesto calibrata sulle sue necessità. Il DDD Analyst, che necessita della visione completa, ha una finestra di 200 messaggi.
 
@@ -16,7 +16,7 @@ Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del D
 
 \subsection{Latenza della Generazione del Modello}
 
-\textbf{Problema:} La catena DDD Analyst $\to$ JSON Coder con modello \texttt{qwen2.5:14b} in inferenza locale può richiedere 5-15 minuti su hardware consumer (CPU-only o GPU entry-level).
+\textbf{Problema:} La catena DDD Analyst $\to$ JSON Coder con modello \texttt{qwen2.5:14b} in inferenza locale può richiedere circa 20 minuti su hardware consumer (CPU-only o GPU entry-level).
 
 \textbf{Soluzione:}
 \begin{enumerate}
@@ -25,7 +25,7 @@ Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del D
   \item Frontend con meccanismo di polling asincrono: dopo il tag \texttt{[FASE\_5\_COMPLETA]}, il frontend mostra un'animazione di attesa e interroga periodicamente il backend ogni 3 secondi fino alla disponibilità del JSON.
 \end{enumerate}
 
-\textbf{Trade-off:} L'esperienza utente durante la generazione è migliorata dall'animazione, ma il tempo di attesa rimane significativo. Un deployment su GPU dedicata (es. NVIDIA RTX 3090+) ridurrebbe la latenza di un ordine di grandezza.
+\textbf{Trade-off:} L'esperienza utente durante la generazione è migliorata dall'animazione, ma il tempo di attesa rimane significativo. Un deployment su GPU dedicata ridurrebbe la latenza.
 
 \subsection{Validità del JSON Generato}
 
@@ -58,7 +58,7 @@ Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del D
 
 \textbf{Problema:} Lo stakeholder potrebbe fornire risposte vaghe come ``non so, decidi tu'' o ``fa' come ti sembra meglio'', delegando decisioni di dominio all'agente LLM. Questo produrrebbe un modello architetturale basato su assunzioni dell'AI anziché sulla conoscenza reale del business.
 
-\textbf{Soluzione:} Il Project Controller include una regola esplicita nel suo system prompt: se l'utente è evasivo o delega la decisione, emette \texttt{WAIT} e l'agente della fase corrente continua a porre domande, forzando lo stakeholder a fornire informazioni concrete.
+\textbf{Soluzione:} L'Orchestrator include una regola esplicita nel suo system prompt: se l'utente è evasivo o delega la decisione, emette \texttt{WAIT} e l'agente della fase corrente continua a porre domande, forzando lo stakeholder a fornire informazioni concrete.
 
 \textbf{Limite:} Se l'utente persiste nell'evasività per un numero molto elevato di turni, la sessione potrebbe entrare in un loop. Attualmente non esiste un meccanismo di escalation o timeout per questa situazione.
 
@@ -73,17 +73,16 @@ Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del D
   
   \item \textbf{Schema JSON Fisso:} Lo schema di output è predefinito nel system prompt del JSON Coder. L'aggiunta di nuove sezioni (es. ``Security Patterns'') richiede la modifica manuale del prompt.
   
-  \item \textbf{Assenza di Persistenza Long-Term:} Le chiavi Redis hanno un TTL di 24 ore. Una sessione non ripresa entro quel termine viene persa. Non esiste un meccanismo di export/import delle sessioni.
 \end{enumerate}
 
 \subsection{Limiti Legati all'Inferenza Locale}
 
 \begin{enumerate}
-  \item \textbf{Velocità:} L'inferenza locale su CPU è ordini di grandezza più lenta rispetto alle API cloud. Una singola risposta dell'agente può richiedere 10-30 secondi.
+  \item \textbf{Velocità:} L'inferenza locale su CPU è ordini di grandezza più lenta rispetto all'utilizzo di API cloud.
   
   \item \textbf{Qualità dei Modelli:} I modelli open-source da 8-14B parametri, pur essendo molto capaci, non raggiungono la qualità di modelli cloud da 70B+ parametri (GPT-4, Claude 3.5) in task complessi come la generazione di JSON strutturato o il ragionamento architetturale profondo.
   
-  \item \textbf{Requisiti Hardware:} Ollama con \texttt{qwen2.5:14b} richiede almeno 16 GB di RAM (o GPU con 10+ GB VRAM) per operare senza swap su disco.
+  \item \textbf{Requisiti Hardware:} Ollama con \texttt{qwen2.5:14b} richiede almeno 16 GB di RAM per operare su disco.
 \end{enumerate}
 
 \section{Compromessi Progettuali}
@@ -97,13 +96,12 @@ Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del D
 \midrule
 Ollama locale vs. API cloud & Privacy totale, nessun costo API, funzionamento offline & Latenza elevata, qualità modelli inferiore, requisiti hardware \\
 \addlinespace
-n8n vs. codice custom & Sviluppo rapido, debug visuale, nessun codice da mantenere & Vendor lock-in su n8n, meno flessibilità per logiche complesse, overhead HTTP tra sub-workflow \\
+n8n vs. codice custom & Sviluppo rapido, debug visuale, nessun codice da mantenere & Meno flessibilità per logiche complesse, overhead HTTP tra sub-workflow \\
 \addlinespace
-Frontend monolitico HTML vs. React/Vue & Zero dipendenze, zero build step, deploy immediato & Mancanza di componenti riutilizzabili, stato UI gestito con variabili globali \\
-\addlinespace
+
 Rete Docker unica vs. segmentazione & Semplicità, comunicazione diretta tra tutti i servizi & Nessun isolamento di rete, tutti i servizi si ``vedono'' \\
 \addlinespace
-Redis vs. database relazionale & Latenza sub-millisecondo, TTL nativo, semplicità & Nessuna query relazionale, nessuno schema enforced, rischio di perdita dati senza persistenza RDB/AOF \\
+Redis vs. database relazionale & Latenza ridotta, TTL nativo, semplicità & Nessuna query relazionale, nessuno schema enforced, rischio di perdita dati senza persistenza \\
 \addlinespace
 Schema JSON fisso nel prompt & Determinismo, prevedibilità dell'output & Rigidità: ogni modifica allo schema richiede aggiornamento del prompt \\
 \bottomrule

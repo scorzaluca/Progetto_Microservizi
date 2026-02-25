@@ -1,0 +1,176 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Caso di Studio: DocOnTime}
+% ────────────────────────────────────────────────────────────────────────────
+
+Per validare l'efficacia del \textit{Domain Interviewer \& Modeler}, è stata condotta una sessione di test end-to-end simulando uno stakeholder di business interessato a sviluppare \textbf{DocOnTime}, una piattaforma per la prenotazione rapida di visite mediche specialistiche attraverso un algoritmo di abbinamento basato su sintomi e urgenza.
+
+Le immagini riportate in questo capitolo illustrano i momenti chiave dell'interazione, evidenziando il comportamento degli agenti e la qualità degli artefatti generati.
+
+\section{Fasi di Discovery e Intervista}
+
+L'intervista ha coperto i cinque pilastri del Discovery DDD. Durante questa fase, gli agenti intervistatori si comportano da esperti della propria fase, gestiti dall'orchestrator, analizzando le risposte dell'utente per estrarre concetti profondi.
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/1.png}
+    \end{tcolorbox}
+    \caption{Identificazione della Visione Strategica: l'agente delinea il Core Domain del sistema.}
+    \label{fig:use_case_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/2.png}
+    \end{tcolorbox}
+    \caption{Dettaglio sui Bounded Context: l'agente richiede attributi specifici per le entità principali.}
+    \label{fig:use_case_2}
+\end{figure}
+
+Al termine di ogni pilastro, l'agente \textit{Orchestrator} valuta la completezza delle informazioni. Solo dopo aver ottenuto un quadro coerente e privo di ambiguità, il sistema emette il \texttt{PASS} finale. Cosi si conclude la fase di discovery per lasciare spazio alla prima generazione dell'architettura.
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/7.png}
+    \end{tcolorbox}
+    \caption{Conclusione dell'intervista: l'Orchestrator emette il verdetto di PASS finale.}
+    \label{fig:use_case_pass}
+\end{figure}
+
+\section{Output e Modello Architetturale}
+
+Una volta approvato il Discovery, gli agenti \textit{DDD Analyst} e \textit{JSON Coder} traducono le informazioni estratte dall' intervista in specifiche tecniche rigorose. Il sistema genera automaticamente una documentazione Markdown strutturata che riflette l'intera architettura.
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/md1.png}
+    \end{tcolorbox}
+    
+    \label{fig:use_case_md1}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.2pt, arc=2pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+            
+            \includegraphics[width=\textwidth, height=0.3\textheight, keepaspectratio]{figures/use_case/md2.png}
+        \end{tcolorbox}
+        \vspace{-2mm}
+        
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.2pt, arc=2pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+            % Oppure puoi usare frazioni dell'altezza del testo: height=0.3\textheight
+            \includegraphics[width=\textwidth, height=0.3\textheight, keepaspectratio]{figures/use_case/md3.png}
+        \end{tcolorbox}
+        \vspace{-2mm}
+        
+    \end{minipage}
+    \label{fig:use_case_outputs_1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.2pt, arc=2pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+            \includegraphics[width=\textwidth]{figures/use_case/md4.png}
+        \end{tcolorbox}
+        \vspace{-2mm}
+        
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.2pt, arc=2pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+            \includegraphics[width=\textwidth]{figures/use_case/md5.png}
+        \end{tcolorbox}
+        \vspace{-2mm}
+        
+    \end{minipage}
+    \label{fig:use_case_outputs_2}
+\end{figure}
+
+
+\section{Fase di Spiegazione}
+
+Una volta definita l'architettura (in formato Markdown e json), in qualsiasi momento, l'utente può interrogare l'agente \textit{Explainer} per ottenere chiarimenti sul modello corrente. L'agente agisce come un consulente tecnico che legge lo stato del sistema e lo traduce in un linguaggio naturale comprensibile.
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/9.png}
+    \end{tcolorbox}
+    \caption{Interazione con l'agente Explainer: analisi e chiarimenti sulla struttura del sistema.}
+    \label{fig:use_case_explain}
+\end{figure}
+
+
+\section{Fase di Modifica}
+
+Infine, è stata validata la capacità di aggiornamento assistito del modello tramite l'agente \textit{Modifier}. Quest'ultimo opera secondo un principio di grounding stretto: ogni modifica deve essere tecnicamente valida e ancorata alla struttura esistente.
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/10.png}
+    \end{tcolorbox}
+    \caption{Richiesta di modifica chirurgica inviata dall'utente.}
+    \label{fig:use_case_ref_req}
+\end{figure}
+
+L'agente non si limita ad aggiornare il JSON, ma emette una "Ricevuta di Modifica" in formato Markdown, che funge da contratto tecnico e riepilogo per l'utente, assicurando la massima trasparenza sull'azione compiuta.
+
+\begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[colback=white, colframe=dimblue, boxrule=1.5pt, arc=3pt, left=0pt, right=0pt, top=0pt, bottom=0pt, boxsep=0pt]
+        \includegraphics[width=\textwidth]{figures/use_case/10.1.png}
+    \end{tcolorbox}
+    \caption{Ricevuta del Modifier: riepilogo formale della modifica strutturale proposta.}
+    \label{fig:use_case_ref_res}
+\end{figure}
+
+\section{Confronto Modelli JSON}
+
+Di seguito viene mostrata la modifica "chirurgica" effettuata dall'agente \textit{Modifier} sulla sezione \texttt{tactical\_patterns}. Il passaggio dalla coordinazione basata su \textit{Coreografia} a quella basata su \textit{Orchestrazione} è stato implementato aggiornando il campo \texttt{coordination\_style}, come richiesto esplicitamente dall'utente.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \textbf{Versione Originale} \\
+        \begin{tcolorbox}[colback=black, colframe=dimblue, boxrule=1pt, arc=2pt, left=5pt, right=5pt, top=5pt, bottom=5pt]
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize\color{white}, backgroundcolor=\color{black}, frame=none, breaklines=true]
+"tactical_patterns": {
+  "coordination_style": "Coreografia: Gli eventi e i comandi generano azioni autonome nei contesti limitati.",
+  "failure_handling_sagas": "..."
+}
+\end{lstlisting}
+        \end{tcolorbox}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \textbf{Versione Modificata} \\
+        \begin{tcolorbox}[colback=black, colframe=dimblue, boxrule=1pt, arc=2pt, left=5pt, right=5pt, top=5pt, bottom=5pt]
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize\color{white}, backgroundcolor=\color{black}, frame=none, breaklines=true]
+"tactical_patterns": {
+  "coordination_style": "Orchestrazione: Un modulo regista centrale coordina le operazioni e gestisce i ripristini automatici in caso di errore nei pagamenti",
+  "failure_handling_sagas": "..."
+}
+\end{lstlisting}
+        \end{tcolorbox}
+    \end{minipage}
+    \caption*{Dettaglio della modifica strutturale: confronto dei pattern tattici.}
+\end{figure}
+
+Il caso di studio DocOnTime dimostra come il DIM riesca a trasformare un'idea di business in un'architettura tecnica rigorosa e modificabile in modo interattivo, garantendo coerenza e precisione in ogni fase del ciclo di vita del progetto.

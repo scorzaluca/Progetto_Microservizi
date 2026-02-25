@@ -13,7 +13,7 @@ Il DIM si propone di automatizzare e standardizzare la fase di Domain Discovery,
   
   \item \textbf{Supportare il raffinamento iterativo del modello} consentendo allo stakeholder di rivedere, chiarire e modificare l'architettura prodotta attraverso un ciclo di revisione conversazionale con garanzie contro modifiche involontarie.
   
-  \item \textbf{Garantire osservabilità end-to-end} dell'intero sistema, fornendo visibilità su log, tracce distribuite e metriche di tutti i componenti per facilitare il debugging e il monitoraggio operativo.
+  \item \textbf{Garantire osservabilità end-to-end} dell'intero sistema, fornendo visibilità su log e metriche di tutti i componenti per facilitare il debugging e il monitoraggio operativo.
 \end{enumerate}
 
 \section{Requisiti Funzionali}
@@ -78,7 +78,7 @@ Il sistema deve mantenere uno stato conversazionale persistente per ogni session
 \section{Requisiti Non Funzionali}
 
 \begin{itemize}
-  \item \textbf{RNF-01 -- Osservabilità:} Raccolta centralizzata di log (Loki), tracce distribuite (Tempo) e metriche (Prometheus) tramite OpenTelemetry Collector, con datasource Grafana preconfigurati.
+  \item \textbf{RNF-01 -- Osservabilità:} Raccolta centralizzata di log (Loki) e metriche (Prometheus) tramite OpenTelemetry Collector, con datasource Grafana preconfigurati.
   \item \textbf{RNF-02 -- Privacy e Indipendenza:} Inferenza LLM completamente locale tramite Ollama. Nessun dato inviato a servizi cloud esterni.
   \item \textbf{RNF-03 -- Portabilità:} Containerizzazione completa tramite Docker Compose per ambiente self-contained e riproducibile con un singolo \texttt{docker compose up}.
   \item \textbf{RNF-04 -- Modularità:} Ogni workflow n8n è un componente autonomo richiamabile indipendentemente, con interfacce well-defined (input/output via webhook e Redis).

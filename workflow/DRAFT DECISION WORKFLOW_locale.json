@@ -85,14 +85,14 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "{\"status\": \"ok\"}",
+        "responseBody": "={{ JSON.stringify($('Code in JavaScript').item.json.full_updated_data) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1040,
-        -96
+        1664,
+        -192
       ],
       "id": "2fea55ba-294a-4840-8fdf-4d1045aa62d1",
       "name": "Respond to Webhook"
@@ -105,7 +105,7 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        624,
+        640,
         96
       ],
       "id": "b63f4606-aa85-4151-84da-a6a6383c6c53",
@@ -141,13 +141,13 @@
       "parameters": {
         "operation": "set",
         "key": "=discovery_json:{{ $('Webhook').item.json.body.sessionId }}",
-        "value": "={{ $json.value }}"
+        "value": "={{ JSON.stringify($json.full_updated_data) }}"
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        624,
-        -96
+        1248,
+        -192
       ],
       "id": "57b089f2-f949-431f-ae83-753a5ab9131c",
       "name": "Redis Confirm drafted json",
@@ -187,8 +187,8 @@
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        832,
-        -96
+        1456,
+        -192
       ],
       "id": "5b513d61-00af-4e6d-a7b7-c383ddc047dd",
       "name": "Redis_discard_refinement_chat",
@@ -208,11 +208,116 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        832,
+        864,
         96
       ],
       "id": "c9634e6d-516a-484b-ba82-6fc9d270badb",
       "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Recupero la BOZZA in modo chirurgico\nconst redisOutput = $('Redis Get drafted json').first().json;\nconst rawValue = redisOutput.propertyName || redisOutput.value;\n\nif (!rawValue) {\n    throw new Error(\"ERRORE: La proprietà 'propertyName' è vuota nel nodo Redis.\");\n}\n\nconst parsedValue = (typeof rawValue === 'string') ? JSON.parse(rawValue) : rawValue;\n\nlet tags = parsedValue.draft_tags;\nif (typeof tags === 'string') {\n    tags = JSON.parse(tags);\n}\n\nif (!tags || !tags.action) {\n    throw new Error(\"ERRORE: Impossibile recuperare i tag tecnici dalla bozza.\");\n}\n\n// 2. Recupero l'ARCHITETTURA ATTUALE (MODIFICATO)\nconst redisArch = $('Redis Get current architecture').first().json;\nconst rawArch = redisArch.current_json || redisArch.value;\n\nif (!rawArch) {\n    throw new Error(\"ERRORE: Architettura attuale non trovata in Redis.\");\n}\n\n// Trasformiamo in oggetto il contenitore principale\nconst parsedFullData = (typeof rawArch === 'string') ? JSON.parse(rawArch) : rawArch;\n\n// AGGIUNTA FONDAMENTALE: Estraiamo e PARSIAMO l'architettura se è una stringa\nlet architecture = parsedFullData['architecture_json'] || parsedFullData;\nif (typeof architecture === 'string') {\n    architecture = JSON.parse(architecture);\n}\n\n// Estraiamo le variabili dai tag ora correttamente parsati\nconst { action, target_section, target_path, key_identifier, data_payload } = tags;\n\n// 3. Funzioni di supporto\nconst getTargetContainer = (obj, section, path) => {\n    if (!path || path === 'root' || path === 'NESSUNO' || path === '') return obj[section];\n    return path.split('.').reduce((acc, part) => {\n        if (!acc) return undefined;\n        const match = part.match(/(.+)\\[(\\d+)\\]/);\n        if (match) return acc[match[1]] ? acc[match[1]][match[2]] : undefined;\n        return acc[part];\n    }, obj[section]); \n};\n\nconst getObjId = (el) => el.name || el.event_name || el.term || el.context_name || el.actor || el.relationship_type;\n\ntry {\n    let container = getTargetContainer(architecture, target_section, target_path);\n\n    // --- LOGICA DI BACKTRACKING (RISOLVE IL PROBLEMA DELLA COREOGRAFIA) ---\n    if (action === 'MODIFY' && (typeof container === 'string' || container === undefined)) {\n        const pathParts = target_path.split('.');\n        pathParts.pop(); \n        const parentPath = pathParts.join('.');\n        const parentContainer = getTargetContainer(architecture, target_section, parentPath);\n        \n        if (parentContainer && typeof parentContainer === 'object' && !Array.isArray(parentContainer)) {\n            container = parentContainer;\n        }\n    }\n\n    // 4. Esecuzione Chirurgia\n    if (action === 'ADD') {\n        if (Array.isArray(container) && (container.length === 0 || typeof container[0] === 'string') && !target_path.includes('entities') && !target_path.includes('domain_events') && !target_path.includes('ubiquitous_language') && !target_path.includes('bounded_contexts')) {\n            container.push(key_identifier);\n        }\n        else if (target_path.includes('domain_events')) {\n            let newElement = { event_name: key_identifier, produced_by_aggregate: \"\", produced_in_context: \"\", trigger_condition: data_payload, consumed_by: [] };\n            const extract = (k) => (data_payload.match(new RegExp(k + \"\\\\s*:\\\\s*(.*?)(?:,\\\\s*[a-z_]+\\\\s*:|$)\")) || [])[1]?.trim() || \"\";\n            newElement.produced_by_aggregate = extract('produced_by_aggregate');\n            newElement.produced_in_context = extract('produced_in_context');\n            newElement.trigger_condition = extract('trigger_condition') || data_payload;\n            container.push(newElement);\n        }\n        else if (target_path.includes('ubiquitous_language')) {\n            container.push({ term: key_identifier, definition: data_payload !== 'NESSUNO' ? data_payload : \"\" });\n        } else if (target_path.includes('actors_and_commands')) {\n            container.push({ actor: key_identifier, commands: data_payload !== 'NESSUNO' ? [data_payload] : [] });\n        } else if (target_path.includes('bounded_contexts') && !target_path.includes('aggregate_roots')) {\n            container.push({ context_name: key_identifier, description: data_payload !== 'NESSUNO' ? data_payload : \"\", aggregate_roots: [] });\n        } else if (target_path.includes('context_mapping')) {\n            container.push({ relationship_type: key_identifier, involved_contexts: data_payload !== 'NESSUNO' ? data_payload : \"\" });\n        }\n        else {\n            let tempEntity = { name: key_identifier };\n            if (data_payload && data_payload !== 'NESSUNO' && data_payload.toLowerCase().includes('attributes')) {\n                const attrs = data_payload.match(/\\[(.*?)\\]/);\n                tempEntity.attributes = attrs ? attrs[1].split(',').map(s => s.trim().replace(/['\"]/g, \"\")) : [];\n            } else if (target_path.includes('aggregate_roots')) {\n                tempEntity.entities = [];\n                tempEntity.transactional_boundary_details = data_payload !== 'NESSUNO' ? data_payload : \"\";\n            }\n            container.push(tempEntity);\n        }\n    } \n    else if (action === 'DELETE') {\n        if (Array.isArray(container)) {\n            const index = container.findIndex(el => (typeof el === 'string' && el === key_identifier) || (typeof el === 'object' && getObjId(el) === key_identifier));\n            if (index > -1) container.splice(index, 1);\n            else throw new Error(`Elemento '${key_identifier}' non trovato.`);\n        } else if (typeof container === 'object' && key_identifier in container) {\n            container[key_identifier] = \"\"; \n        }\n    }\n    else if (action === 'MODIFY') {\n        // Pulisce il payload da eventuali virgolette extra inviate dall'LLM\n        const cleanPayload = data_payload.replace(/^\"|\"$/g, '');\n\n        if (Array.isArray(container)) {\n            if (container.length > 0 && typeof container[0] === 'string') {\n                const index = container.findIndex(el => el === key_identifier);\n                if (index > -1) container[index] = cleanPayload;\n            } else {\n                const element = container.find(el => getObjId(el) === key_identifier);\n                if (!element) throw new Error(`Elemento '${key_identifier}' non trovato.`);\n                \n                if (cleanPayload && cleanPayload !== 'NESSUNO') {\n                    if (target_path.includes('ubiquitous_language')) {\n                        element.definition = cleanPayload;\n                    } else if (target_path.includes('actors_and_commands')) {\n                        if (!element.commands) element.commands = [];\n                        if (!element.commands.includes(cleanPayload)) element.commands.push(cleanPayload);\n                    } else if (target_path.includes('context_mapping')) {\n                        element.involved_contexts = cleanPayload;\n                    } else if (target_path.includes('domain_events')) {\n                        element.trigger_condition = cleanPayload;\n                    } else if (cleanPayload.toLowerCase().includes('attributes')) {\n                        const attrs = cleanPayload.match(/\\[(.*?)\\]/);\n                        const newAttrs = attrs ? attrs[1].split(',').map(s => s.trim().replace(/['\"]/g, \"\")) : [];\n                        element.attributes = Array.from(new Set([...(element.attributes || []), ...newAttrs]));\n                    } else {\n                        element.description = cleanPayload;\n                    }\n                }\n            }\n        } else if (typeof container === 'object' && container !== null) {\n            if (key_identifier in container) {\n                container[key_identifier] = cleanPayload;\n            } else {\n                const lastPathPart = target_path.split('.').pop();\n                if (lastPathPart in container) {\n                    container[lastPathPart] = cleanPayload;\n                } else {\n                    throw new Error(`Impossibile trovare il campo '${key_identifier}' da modificare.`);\n                }\n            }\n        }\n    }\n\n    return { \n        full_updated_data: {\n            output: \"Ho aggiornato la struttura tecnica con successo.\",\n            architecture_json: architecture \n        }, \n        success: true \n    };\n\n} catch (e) {\n    return { success: false, error: e.message };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "8050fb46-eb96-42d4-89f1-3a2cd41224c6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f7a915f0-6682-437e-ace9-8375b42457b4",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "b82c5158-3e10-452f-ad71-805573e5c1b3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=draft_status:{{ $('Webhook').item.json.body.sessionId }}",
+        "value": "failed"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        -32
+      ],
+      "id": "7ebd9168-06bf-4c5f-bb3a-359dd01561ce",
+      "name": "Redis1",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "current_json",
+        "key": "=discovery_json:{{ $('Webhook').item.json.body.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "659cf3ce-c823-4d9d-bd3a-395693445f44",
+      "name": "Redis Get current architecture",
+      "credentials": {
+        "redis": {
+          "id": "G3AmE16QK8P1M12m",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"failed\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1440,
+        -32
+      ],
+      "id": "465483ce-09a7-41a3-ac2e-5e594fe166c2",
+      "name": "Respond to Webhook2"
     }
   ],
   "pinData": {},
@@ -272,7 +377,7 @@
       "main": [
         [
           {
-            "node": "Redis Confirm drafted json",
+            "node": "Redis Get current architecture",
             "type": "main",
             "index": 0
           }
@@ -300,6 +405,57 @@
           }
         ]
       ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Redis Confirm drafted json",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get current architecture": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -308,7 +464,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "69e8baca-b518-48a3-ad35-3d35c70d6284",
+  "versionId": "764f1bb2-7b26-41fe-bfce-287b6b4d3764",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"

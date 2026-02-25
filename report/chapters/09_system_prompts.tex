@@ -94,7 +94,7 @@ Tutti e cinque gli agenti intervistatori condividono una struttura a quattro sez
 \textbf{Azioni obbligatorie:}
 \begin{enumerate}
   \item Investigare le esigenze di scaling indipendente.
-  \item Proporre/confermare requisiti per tracing distribuito (OpenTelemetry) e logging centralizzato.
+  \item Proporre/confermare requisiti per logging centralizzato e monitoraggio.
   \item Identificare sistemi legacy e la necessità di Anticorruption Layer.
   \item Raccogliere vincoli base su protezione dati e compliance.
 \end{enumerate}
@@ -110,7 +110,7 @@ L'Orchestrator (Project Controller) è l'agente critico per la qualità del mate
   \item \textbf{Fase 2 (Struttura):} Definizione chiara di Bounded Contexts, Aggregate Roots e almeno 2-3 attributi specifici per ogni entità principale.
   \item \textbf{Fase 3 (Eventi):} Identificazione di Actor, Command e Domain Event (PascalCase), oltre alle relazioni di Context Mapping.
   \item \textbf{Fase 4 (Pattern):} Scelta tra Orchestration/Choreography, definizione dei ``sad path'' (Sagas) e modelli di consistenza.
-  \item \textbf{Fase 5 (Resilienza):} Requisiti di scaling, monitoring (OpenTelemetry), sistemi legacy e compliance.
+  \item \textbf{Fase 5 (Resilienza):} Requisiti di scaling, monitoring, sistemi legacy e compliance.
 \end{itemize}
 
 L'Orchestrator applica un \textbf{Protocollo Comportamentale} severo: emette \texttt{WAIT} se anche un solo punto della checklist è incompleto o se l'utente ha delegato la decisione all'AI senza confermare esplicitamente. Il \texttt{PASS} viene concesso solo in presenza di un'alta profondità tecnica, garantendo che le fasi successive di generazione abbiano materiale sufficiente.
@@ -134,15 +134,20 @@ Gli agenti di refinement operano esclusivamente quando il modello architetturale
 
 \subsection{Modifier}
 
-Il Modifier è progettato per agire come un chirurgo tecnico. Il suo prompt impone regole di \textbf{Strict Grounding}: ogni componente citato nella richiesta dell'utente deve essere verificato nel ``JSON GOLD'' (l'architettura corrente) prima di procedere. Se la richiesta è ambigua, vaga o strutturalmente pericolosa, l'agente ha l'istruzione di non generare output tecnico, ma di rispondere in modo conversazionale per richiedere precisazioni.
+Il Modifier è progettato per agire come un \textbf{Senior Software Architect} esperto in DDD ed EDA, con il compito di tradurre i feedback dell'utente in aggiornamenti strutturali chirurgici. Il suo prompt impone un protocollo di sicurezza e precisione articolato in tre pilastri:
 
-Quando la richiesta è valida, l'agente deve produrre esclusivamente un \textbf{Markdown Receipt} chirurgico con i seguenti campi obbligatori:
 \begin{itemize}
-  \item \textbf{Azione:} Operazione atomica (\texttt{ADD}, \texttt{MODIFY}, \texttt{DELETE}).
-  \item \textbf{Sezione Target:} Chiave root del JSON (es. \texttt{eda\_integration}).
-  \item \textbf{Path Interno:} Percorso esatto nell'albero (es. \texttt{domain\_events[0].consumed\_by}).
-  \item \textbf{Elemento:} Identificativo dell'oggetto da modificare.
-  \item \textbf{Dettagli/Payload:} Nuovi attributi o dati da iniettare nella struttura.
+  \item \textbf{Strict Grounding \& Safety:} L'agente deve verificare al 100\% l'esistenza di ogni componente nel ``JSON GOLD'' (l'attuale stato dell'architettura) prima di rispondere. Se la richiesta è vaga, eccessivamente ampia o tecnicamente incompleta, l'agente è istruito a \textbf{non generare una proposta tecnica}, ma a rispondere con un messaggio conversazionale in italiano per richiedere chiarimenti.
+  
+  \item \textbf{Il Markdown Receipt:} In presenza di una richiesta valida, l'output deve essere esclusivamente un blocco Markdown strettamente formattato, che funge sia da riepilogo per l'utente che da sorgente dati per il sistema. Il formato impone l'uso di etichette in grassetto fisse:
+  \begin{itemize}
+    \item \textbf{Azione:} Vincolata ai valori \texttt{ADD}, \texttt{MODIFY} o \texttt{DELETE}.
+    \item \textbf{Sezione Target:} Chiave root esatta del JSON (es. \texttt{boundaries\_and\_language}).
+    \item \textbf{Path Interno:} Percorso tecnico nell'albero (es. \texttt{bounded\_contexts[0].entities}).
+    \item \textbf{Elemento:} Nome esatto dell'entità o componente.
+    \item \textbf{Dettagli/Payload:} Dati da iniettare, rigorosamente su una singola riga per facilitare il parsing.
+  \end{itemize}
+
 \end{itemize}
 
 \subsection{Explainer}

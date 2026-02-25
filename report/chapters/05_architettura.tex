@@ -2,10 +2,12 @@
 \chapter{Architettura del Sistema}
 % ────────────────────────────────────────────────────────────────────────────
 
-% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
-\begin{warningbox}{Suggerimento: Immagine}
-\textit{Inserire qui un diagramma architetturale completo del sistema (simile ad un C4 Context/Container Diagram) che mostri tutti i microservizi, le rete Docker, i flussi di comunicazione e lo stack di osservabilità. Questo è il diagramma più importante dell'intero report.}
-\end{warningbox}
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{img/architettura_uS.png}
+\caption{Architettura complessiva del sistema DIM}
+\label{fig:architettura_uS}
+\end{figure}
 
 Questo capitolo descrive l'architettura logica e fisica del Domain Interviewer \& Modeler, illustrando come i moduli cooperano per garantire un servizio di domain discovery scalabile, modulare e osservabile.
 
@@ -20,13 +22,13 @@ Il DIM è un ecosistema modulare basato su microservizi containerizzati in cui o
 
   \item \textbf{Il Cervello (Ollama):} Runtime LLM locale che esegue i modelli di linguaggio per tutte le operazioni di ragionamento semantico. Due modelli sono impiegati, ciascuno con temperatura calibrata sul compito:
   \begin{itemize}
-    \item \texttt{llama3:latest} --- modello conversazionale impiegato per gli agenti che interagiscono direttamente con l'utente o ne valutano le risposte: Interviewer (temp.~0.4), Orchestrator (temp.~0.0), Modifier (temp.~0.1) ed Explainer (temp.~0.4).
-    \item \texttt{qwen2.5:14b} --- modello ad alta precisione strutturale, impiegato dove è richiesta la generazione di output formali: DDD Analyst per la sintesi del documento architetturale (temp.~0.3) e JSON Coder per la traduzione in JSON con schema predefinito (temp.~0.0).
+    \item \texttt{llama3:latest} --- modello conversazionale impiegato per gli agenti che interagiscono direttamente con l'utente: 5 agenti Intervistatori (temp.~0.4), ed Explainer (temp.~0.4).
+    \item \texttt{qwen2.5:14b} --- modello ad alta precisione strutturale, impiegato dove è richiesta la generazione di output formali: DDD Analyst per la sintesi del documento architetturale (temp.~0.3) e JSON Coder per la traduzione in JSON con schema predefinito (temp.~0.0), e dove è richiesta un ragionamento più complesso: Orchestrator (temp.~0.0) per approvare le transizioni di fase e Modifier (temp.~0.1) per dedurre la giusta modifica da fare.
   \end{itemize}
 
   \item \textbf{L'Interfaccia (Frontend HTML):} Chat web full-screen single-page che consente allo stakeholder di interagire in linguaggio naturale, con rendering differenziato per testo, JSON e Markdown architetturale.
 
-  \item \textbf{Il Supervisore (Stack Osservabilità):} Pipeline OpenTelemetry Collector $\to$ Loki/Tempo/Prometheus $\to$ Grafana che raccoglie log, tracce distribuite e metriche da tutti i container.
+  \item \textbf{Il Supervisore (Stack Osservabilità):} Pipeline OpenTelemetry Collector $\to$ Loki/Prometheus $\to$ Grafana che raccoglie log e metriche da tutti i container.
 \end{itemize}
 
 
@@ -62,7 +64,7 @@ Ogni agente LLM del sistema --- intervistatori, orchestratore, agenti di elabora
 
 \subsection{Osservabilità Nativa}
 
-L'osservabilità non è un add-on ma un componente strutturale dell'architettura. Il servizio n8n emette telemetria nativa OTLP verso l'OTel Collector, che la instrada verso Loki (log), Tempo (tracce) e Prometheus (metriche). Grafana è preconfigurato con datasource e correlation per navigare tra i tre segnali.
+L'osservabilità non è un add-on ma un componente strutturale dell'architettura. Il servizio n8n emette telemetria nativa OTLP verso l'OTel Collector, che la instrada verso Loki (log) e Prometheus (metriche). Grafana è preconfigurato con datasource e correlation per navigare tra i segnali.
 
 \section{Motivazioni delle scelte architetturali}
 
@@ -73,12 +75,12 @@ L'osservabilità non è un add-on ma un componente strutturale dell'architettura
 
 \textbf{Ollama vs. API cloud (OpenAI, Anthropic):} Scelto per garantire privacy totale dei dati di dominio. In un contesto enterprise, le informazioni sulla struttura del business e i processi interni sono altamente confidenziali. L'inferenza locale garantisce che nessun dato di dominio venga trasmesso a servizi esterni, preservando la riservatezza delle informazioni aziendali.
 
-\textbf{Modelli LLM --- llama3 e qwen2.5:14b:} \texttt{llama3} è impiegato per tutti gli agenti conversazionali (intervistatori, orchestratore, Modifier, Explainer) dove fluency e capacità di interazione sono prioritarie. \texttt{qwen2.5:14b} è riservato agli agenti di elaborazione post-intervista --- DDD Analyst e JSON Coder --- che richiedono alta precisione nella generazione di output strutturati (documento Markdown e JSON formale).
+\textbf{Modelli LLM --- llama3 e qwen2.5:14b:} \texttt{llama3} è impiegato per tutti gli agenti conversazionali (intervistatori e Explainer) dove fluency e capacità di interazione sono prioritarie. \texttt{qwen2.5:14b} è riservato agli agenti di elaborazione post-intervista --- DDD Analyst, JSON Coder, Orchestrator e Modifier --- che richiedono alta precisione nella generazione di output strutturati (documento Markdown e JSON formale) e nel ragionamento logico.
 \end{technicalbox}
 
 \section{Flusso di Comunicazione End-to-End}
 
-Il flusso di una sessione completa segue questo percorso, dal primo messaggio dell'utente fino al raffinamento del modello:
+Il flusso di una sessione completa segue questo percorso, dal primo messaggio dell'utente fino al raffinamento del modello (si veda il diagramma di sequenza in Figura \ref{fig:sequenza_54}):
 
 \begin{enumerate}
   \item L'utente accede al frontend, che genera o recupera un identificatore di sessione univoco.
@@ -91,7 +93,9 @@ Il flusso di una sessione completa segue questo percorso, dal primo messaggio de
 
 I dettagli implementativi di ogni componente --- webhook, routing, transizioni di fase, polling e gestione delle bozze --- sono approfonditi nei Capitoli~7 e~8.
 
-% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
-\begin{warningbox}{Suggerimento: Immagine}
-\textit{Inserire qui un diagramma di sequenza (sequence diagram) che illustri il flusso completo descritto sopra: Frontend $\to$ Routing $\to$ Discovery $\to$ Generazione $\to$ Refinement. Evidenziare il ruolo dell'Orchestrator nella validazione e la catena di generazione post-Fase~5.}
-\end{warningbox}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/sequenza_54.png}
+    \caption{Diagramma di sequenza del flusso end-to-end: dall'intervista alla generazione del modello.}
+    \label{fig:sequenza_54}
+\end{figure}

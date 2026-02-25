@@ -166,12 +166,14 @@
               "value": "={{ $('Webhook').item.json.body.message }}"
             },
             {
-              "name": "sessionid",
+              "name": "sessionId",
               "value": "={{ $('Webhook').item.json.body.sessionId }}"
             }
           ]
         },
-        "options": {}
+        "options": {
+          "timeout": 1800000
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
@@ -194,7 +196,7 @@
               "value": "={{ $('Webhook').item.json.body.message }}"
             },
             {
-              "name": "sessionid",
+              "name": "sessionId",
               "value": "={{ $('Webhook').item.json.body.sessionId }}"
             },
             {
@@ -203,7 +205,10 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 1800000
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
@@ -304,7 +309,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "56e59f8e-c872-4686-b818-06e9e1e1e4c3",
+  "versionId": "312e27a9-faaf-41a4-8dec-f197b26b6243",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "52a68bcd1f54fc16001268dd9a7486b5178c7ab47e17f96b422167fc3c8d9cc1"

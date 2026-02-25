@@ -14,10 +14,9 @@ L'intero sistema è definito in un singolo file \texttt{docker-compose.yml} che 
 \textbf{Container} & \textbf{Immagine} & \textbf{Porte} & \textbf{Volumi} & \textbf{Depends On} \\
 \midrule
 loki & grafana/loki:3.5.0 & 3100 & \texttt{./loki/} & --- \\
-tempo & grafana/tempo:2.9.0 & 3200 & \texttt{./tempo/} & --- \\
-otel-collector & otel/opentelemetry-\newline collector-contrib:0.133.0 & 4317, 4318 & \texttt{./otel-collector/} & loki, tempo \\
+otel-collector & otel/opentelemetry-\newline collector-contrib:0.133.0 & 4317, 4318 & \texttt{./otel-collector/} & loki \\
 prometheus & prom/prometheus:v2.53.0 & 9090 & \texttt{./prometheus/} & --- \\
-grafana & grafana/grafana:12.2 & 8080$\to$3000 & \texttt{./grafana/} & loki, tempo, prometheus \\
+grafana & grafana/grafana:12.2 & 8080$\to$3000 & \texttt{./grafana/} & loki, prometheus \\
 n8n & docker.n8n.io/\newline n8nio/n8n & 5678 & \texttt{./Data\_N8N} & redis, ollama, otel-collector \\
 redis & redis:alpine & 6379 & \texttt{./Data\_Redis} & --- \\
 ollama & ollama/ollama & 11434 & \texttt{./Data\_Ollama} & --- \\
@@ -37,8 +36,7 @@ All'interno della rete \texttt{rete\_unica}, ogni container è raggiungibile dag
   \item n8n raggiunge Ollama come \texttt{ollama:11434}.
   \item n8n invia telemetria OTLP a \texttt{otel-collector:4318}.
   \item L'OTel Collector esporta i log a \texttt{loki:3100/otlp}.
-  \item L'OTel Collector esporta le tracce a \texttt{tempo:4317}.
-  \item Grafana interroga \texttt{loki:3100}, \texttt{tempo:3200} e \texttt{prometheus:9090} tramite provisioning automatico.
+  \item Grafana interroga \texttt{loki:3100} e \texttt{prometheus:9090} tramite provisioning automatico.
 \end{itemize}
 
 Tutte le porte dei servizi sono mappate sull'host per consentire l'accesso diretto durante lo sviluppo e il debugging. In un ambiente di produzione, solo le porte strettamente necessarie all'accesso esterno (5678 per il webhook n8n, 8080 per la UI Grafana) andrebbero esposte.
@@ -50,8 +48,8 @@ Il Docker Compose definisce dipendenze esplicite tramite \texttt{depends\_on}:
 
 \begin{itemize}
   \item \textbf{n8n} $\to$ \texttt{redis}, \texttt{ollama}, \texttt{otel-collector}: n8n non può operare senza lo stato conversazionale (Redis), il motore di inferenza LLM (Ollama) e il collettore di telemetria.
-  \item \textbf{otel-collector} $\to$ \texttt{loki}, \texttt{tempo}: Il collettore necessita dei backend di log e tracce attivi per esportare i segnali.
-  \item \textbf{grafana} $\to$ \texttt{loki}, \texttt{tempo}, \texttt{prometheus}: I datasource devono essere raggiungibili per il provisioning automatico.
+  \item \textbf{otel-collector} $\to$ \texttt{loki}: Il collettore necessita del backend di log attivo per esportare i segnali.
+  \item \textbf{grafana} $\to$ \texttt{loki}, \texttt{prometheus}: I datasource devono essere raggiungibili per il provisioning automatico.
 \end{itemize}
 
 \begin{warningbox}{Nota Importante: Ordine di Avvio}
@@ -74,8 +72,6 @@ redis & \texttt{./Data\_Redis} & Dump RDB per persistenza dello stato \\
 ollama & \texttt{./Data\_Ollama} & Cache dei modelli LLM scaricati \\
 loki & \texttt{./loki/loki-config.yml} (ro) & Configurazione di Loki (read-only) \\
 loki & \texttt{./.runtime/data/loki} & Storage dei chunk di log \\
-tempo & \texttt{./tempo/tempo-config.yml} (ro) & Configurazione di Tempo (read-only) \\
-tempo & \texttt{./.runtime/data/tempo} & Storage dei blocchi di tracce \\
 otel-collector & \texttt{./otel-collector/collector.yaml} (ro) & Configurazione del collettore \\
 prometheus & \texttt{./prometheus/prometheus.yml} (ro) & Configurazione di scraping \\
 grafana & \texttt{./grafana/provisioning/} (ro) & Datasource e dashboard auto-configurati \\

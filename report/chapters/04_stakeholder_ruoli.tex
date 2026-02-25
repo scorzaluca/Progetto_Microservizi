@@ -61,7 +61,7 @@ Tutti gli agenti condividono un insieme di vincoli comportamentali definiti nei 
   \item \texttt{WAIT}: Informazioni mancanti, vaghe o con profondità tecnica insufficiente.
 \end{itemize}
 
-L'Orchestrator opera con una checklist di validazione per fase, verificando ad esempio che nella Fase~2 ogni entità principale abbia almeno 2--3 attributi specifici, o che nella Fase~4 sia stata fatta una scelta esplicita tra Choreography e Orchestration.
+L'Orchestrator opera con una checklist di validazione per fase, verificando ad esempio che nella Fase~2 ogni entità principale abbia almeno 2--3 attributi specifici, o che nella Fase~4 sia stata fatta una scelta esplicita tra Choreography e Orchestration. (modello \texttt{qwen2.5:14b})
 
 \section{Agenti di Elaborazione (Post-Discovery)}
 
@@ -69,15 +69,15 @@ L'Orchestrator opera con una checklist di validazione per fase, verificando ad e
 
 \textbf{JSON Coder:} Converte il documento Markdown in un JSON formale con schema predefinito (modello \texttt{qwen2.5:14b}, temperatura 0.0 per massima determinismo), preservando ogni dettaglio senza riassumere.
 
-\textbf{Modifier (Refinement):} Analizza le richieste di modifica dell'utente, verifica l'esistenza dei componenti nel modello architetturale corrente, e produce un receipt strutturato con l'azione da intraprendere (ADD, MODIFY, DELETE).
+\textbf{Modifier (Refinement):} Analizza le richieste di modifica dell'utente, verifica l'esistenza dei componenti nel modello architetturale corrente, e produce un receipt strutturato con l'azione da intraprendere (ADD, MODIFY, DELETE). (modello \texttt{qwen2.5:14b})
 
-\textbf{Explainer (Refinement):} Risponde a domande di chiarimento sull'architettura corrente, basandosi esclusivamente sul JSON in Redis. È strettamente inibito dal suggerire o implementare modifiche.
+\textbf{Explainer (Refinement):} Risponde a domande di chiarimento sull'architettura corrente, basandosi esclusivamente sul JSON in Redis. È strettamente inibito dal suggerire o implementare modifiche. (modello \texttt{llama3})
 
 \section{Stack di Osservabilità}
 
 \textbf{Ruolo:} Insieme di strumenti tecnici preposti al monitoraggio e alla telemetria del sistema.
 
-\textbf{Responsabilità:} Raccolta, elaborazione e visualizzazione di log, tracce distribuite e metriche da tutti i componenti containerizzati dell'ecosistema DIM.
+\textbf{Responsabilità:} Raccolta, elaborazione e visualizzazione di log e metriche da tutti i componenti containerizzati dell'ecosistema DIM.
 
 \section{Matrice di Tracciabilità Ruoli/Funzioni}
 

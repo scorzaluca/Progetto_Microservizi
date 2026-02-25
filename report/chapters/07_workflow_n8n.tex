@@ -25,10 +25,13 @@ Draft Decision & Webhook POST \texttt{/draft-decision-locale} & Conferma o rifiu
 
 \section{Routing Workflow}
 
-% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
-\begin{warningbox}{Suggerimento: Immagine}
-\textit{Inserire qui uno screenshot del Routing Workflow dall'interfaccia di n8n, mostrando i nodi Webhook $\to$ Redis Get $\to$ If $\to$ branching verso Discovery/Refinement.}
-\end{warningbox}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/routing_workflow.png}
+    \caption{Struttura del Routing Workflow nell'interfaccia n8n: gestione degli accessi e branching.}
+    \label{fig:routing_workflow}
+\end{figure}
+
 
 Il Routing Workflow è il punto di ingresso dell'intera pipeline. Riceve i messaggi dallo stakeholder tramite webhook HTTP e decide dove instradarli.
 
@@ -55,10 +58,12 @@ Il timeout dell'HTTP Request verso il Discovery Workflow è impostato a 1.800.00
 
 \section{Discovery Workflow}
 
-% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
-\begin{warningbox}{Suggerimento: Immagine}
-\textit{Inserire qui uno screenshot del Discovery Workflow completo dall'interfaccia di n8n. Questo è il workflow più complesso e il suo diagramma visuale è essenziale per la comprensione.}
-\end{warningbox}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/discovery_workflow.png}
+    \caption{Struttura del Discovery Workflow nell'interfaccia n8n}
+    \label{fig:discovery_workflow}
+\end{figure}
 
 Il Discovery Workflow è il componente più complesso dell'intero sistema. Implementa la pipeline di intervista a cinque fasi con agenti specializzati e la catena di generazione del modello architetturale.
 
@@ -103,16 +108,20 @@ JSON Coder & Post & qwen2.5:14b & 0.0 & --- & Traduzione MD $\to$ JSON \\
 \caption{Configurazione completa degli agenti nel Discovery Workflow}
 \end{table}
 
+\newpage
+
 \begin{technicalbox}{Dettaglio Tecnico: Memory Window Crescente}
 La scelta di una memory window crescente (10 $\to$ 50 messaggi) è una decisione di prompt engineering motivata dall'accumulazione progressiva di informazioni. L'agente di Fase~1 necessita solo del contesto immediato per identificare i subdomini, mentre l'agente di Fase~5 deve avere visibilità sull'intera conversazione per garantire coerenza architetturale nelle domande su scalabilità e resilienza. Il DDD Analyst utilizza una finestra di 200 messaggi per avere accesso all'intero storico.
 \end{technicalbox}
 
 \section{Refinement Workflow}
 
-% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
-\begin{warningbox}{Suggerimento: Immagine}
-\textit{Inserire qui uno screenshot del Refinement Workflow dall'interfaccia di n8n, evidenziando il branching tra modalità Explain e Modify.}
-\end{warningbox}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figures/refinement_workflow.png}
+    \caption{Struttura del Refinement Workflow nell'interfaccia n8n}
+    \label{fig:refinement_workflow}
+\end{figure}
 
 Una volta generato il modello architetturale, lo stakeholder può interagire con esso attraverso due modalità.
 

@@ -4,14 +4,30 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Architettura complessiva del sistema DIM}}{16}{figure.caption.6}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Diagramma di sequenza del flusso end-to-end: dall'intervista alla generazione del modello.}}{20}{figure.caption.7}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Struttura del Routing Workflow nell'interfaccia n8n: gestione degli accessi e branching.}}{24}{figure.caption.11}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Struttura del Discovery Workflow nell'interfaccia n8n}}{25}{figure.caption.12}%
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Struttura del Refinement Workflow nell'interfaccia n8n}}{27}{figure.caption.14}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {8.1}{\ignorespaces Interfaccia della chat frontend}}{29}{figure.caption.15}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {10.1}{\ignorespaces Architettura complessiva del sistema DIM con focus sullo stack di osservabilità}}{37}{figure.caption.18}%
+\contentsline {figure}{\numberline {10.2}{\ignorespaces Grafana Dashboard --- Monitoraggio dei volumi di log per ogni container Docker}}{38}{figure.caption.21}%
+\contentsline {figure}{\numberline {10.3}{\ignorespaces Monitoraggio Redis --- Dettaglio su memoria, client connessi e throughput (comandi/sec)}}{39}{figure.caption.22}%
+\contentsline {figure}{\numberline {10.4}{\ignorespaces Metodologia di monitoraggio n8n --- Dettaglio su Event Loop Lag e utilizzo Memoria (Heap/RSS)}}{39}{figure.caption.23}%
+\contentsline {figure}{\numberline {10.5}{\ignorespaces Dashboard Grafana --- Visualizzazione dei log strutturati estratti da Loki}}{40}{figure.caption.25}%
+\contentsline {figure}{\numberline {10.6}{\ignorespaces Dashboard Grafana --- Metriche applicative n8n e stato del database Redis}}{40}{figure.caption.26}%
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {10.1}{\ignorespaces Architettura dello stack di osservabilità: OTel Collector $\to $ Loki / Prometheus $\to $ Grafana}}{36}{figure.caption.12}%
-\contentsline {figure}{\numberline {10.2}{\ignorespaces Dashboard Grafana --- Visualizzazione log aggregati da Loki}}{38}{figure.caption.16}%
-\contentsline {figure}{\numberline {10.3}{\ignorespaces Dashboard Grafana --- Visualizzazione metriche da Prometheus}}{38}{figure.caption.17}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
+\contentsline {figure}{\numberline {13.1}{\ignorespaces Identificazione della Visione Strategica: l'agente delinea il Core Domain del sistema.}}{46}{figure.caption.28}%
+\contentsline {figure}{\numberline {13.2}{\ignorespaces Dettaglio sui Bounded Context: l'agente richiede attributi specifici per le entità principali.}}{46}{figure.caption.29}%
+\contentsline {figure}{\numberline {13.3}{\ignorespaces Conclusione dell'intervista: l'Orchestrator emette il verdetto di PASS finale.}}{47}{figure.caption.30}%
+\contentsline {figure}{\numberline {13.4}{\ignorespaces Interazione con l'agente Explainer: analisi e chiarimenti sulla struttura del sistema.}}{48}{figure.caption.34}%
+\contentsline {figure}{\numberline {13.5}{\ignorespaces Richiesta di modifica chirurgica inviata dall'utente.}}{49}{figure.caption.35}%
+\contentsline {figure}{\numberline {13.6}{\ignorespaces Ricevuta del Modifier: riepilogo formale della modifica strutturale proposta.}}{49}{figure.caption.36}%
 \contentsfinish 

@@ -6,8 +6,8 @@ L'osservabilità è un pilastro architetturale del DIM, garantendo visibilità s
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{img/observability.png}
-\caption{Architettura dello stack di osservabilità: OTel Collector $\to$ Loki / Prometheus $\to$ Grafana}
+\includegraphics[width=0.9\textwidth]{img/observability.png}
+\caption{Architettura complessiva del sistema DIM con focus sullo stack di osservabilità}
 \label{fig:osservabilita}
 \end{figure}
 
@@ -72,6 +72,13 @@ Grafana Loki (v3.5.0) è il backend di log aggregation. Configurato in modalità
   \item Autenticazione disabilitata per ambiente di sviluppo locale.
 \end{itemize}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{img/Screenshot 2026-02-25 112921.png}
+\caption{Grafana Dashboard --- Monitoraggio dei volumi di log per ogni container Docker}
+\label{fig:log_volume}
+\end{figure}
+
 \section{Prometheus: Metriche}
 
 Prometheus (v2.53.0) è il backend per le metriche. Non esegue scraping diretto dei target: le metriche arrivano esclusivamente tramite Remote Write (push) dall'OTel Collector.
@@ -86,8 +93,24 @@ Il Collector esegue anche lo scraping del \texttt{redis-exporter}.
 \textbf{Metriche disponibili in Grafana:}
 \begin{itemize}
   \item \textbf{Redis} (via redis-exporter): connessioni attive, memoria utilizzata, operazioni al secondo, chiavi per database, hit rate.
-  \item \textbf{n8n} (via \texttt{/metrics} combinato all'OTLP): numero dei workflow attivi (\texttt{n8n\_active\_workflow\_count}), utilizzo heap NODE (\texttt{n8n\_nodejs\_heap\_size\_used\_bytes}), tempo di lag dell'event loop, metriche generali del processo OS.
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{img/Screenshot 2026-02-25 112944.png}
+\caption{Monitoraggio Redis --- Dettaglio su memoria, client connessi e throughput (comandi/sec)}
+\label{fig:redis_metrics_detail}
+\end{figure}
+\begin{itemize}
+  \item \textbf{n8n} (via \texttt{/metrics} combinato all'OTLP): numero dei workflow attivi(\texttt{n8n\_active\_wor\\kflow\_count}), utilizzo heap NODE (\texttt{n8n\_nodejs\_heap\_size\_used\_bytes}), tempo di lag dell'event loop, metriche generali del processo OS.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{img/Screenshot 2026-02-25 113036.png}
+\caption{Metodologia di monitoraggio n8n --- Dettaglio su Event Loop Lag e utilizzo Memoria (Heap/RSS)}
+\label{fig:n8n_metrics_detail}
+\end{figure}
 
 \section{Grafana: Visualizzazione e Dashboard}
 
@@ -107,17 +130,18 @@ Prometheus & \texttt{prometheus:9090}  & No & PromQL per metriche Redis e n8n \\
 \caption{Datasource Grafana preconfigurati}
 \end{table}
 
-% --- Placeholder per immagini dashboard Grafana ---
+% --- Dashboard Grafana Loki ---
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.9\textwidth}{\centering\vspace{2.5cm}\textit{Inserire qui screenshot della dashboard Grafana con log Loki}\vspace{2.5cm}}}
-\caption{Dashboard Grafana --- Visualizzazione log aggregati da Loki}
+\includegraphics[width=1\textwidth]{img/Screenshot 2026-02-25 113056.png}
+\caption{Dashboard Grafana --- Visualizzazione dei log strutturati estratti da Loki}
 \label{fig:grafana_log}
 \end{figure}
 
+% --- Dashboard Grafana Prometheus ---
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.9\textwidth}{\centering\vspace{2.5cm}\textit{Inserire qui screenshot della dashboard Grafana con metriche Prometheus}\vspace{2.5cm}}}
-\caption{Dashboard Grafana --- Visualizzazione metriche da Prometheus}
+\includegraphics[width=1\textwidth]{img/Screenshot 2026-02-25 113013.png}
+\caption{Dashboard Grafana --- Metriche applicative n8n e stato del database Redis}
 \label{fig:grafana_prometheus}
 \end{figure}
