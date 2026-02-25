@@ -1,0 +1,157 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Design dei System Prompt}
+% ────────────────────────────────────────────────────────────────────────────
+
+Il design dei system prompt è un aspetto critico del DIM. Ogni agente LLM è dotato di un system prompt ingegnerizzato secondo una struttura formale, rigorosa e adattata alle specificità di ciascun ruolo. La qualità e la precisione dei system prompt determinano direttamente la qualità dell'output dell'intero sistema.
+
+\section{Struttura Comune dei System Prompt Intervistatori}
+
+Tutti e cinque gli agenti intervistatori condividono una struttura a quattro sezioni:
+
+\begin{enumerate}
+  \item \textbf{ROLE \& PERSONA:} Definisce l'identità dell'agente. Ogni agente ha un titolo unico:
+  \begin{itemize}
+    \item Fase~1: ``Senior Strategic Architect'' --- esperto nel Problem Space.
+    \item Fase~2: ``Senior Structural Architect'' --- esperto nel Solution Space.
+    \item Fase~3: ``Senior Event-Driven Architect'' --- esperto in dinamiche di sistema.
+    \item Fase~4: ``Senior Tactical Architect'' --- esperto in transazioni distribuite.
+    \item Fase~5: ``Senior Infrastructure Architect'' --- esperto in resilienza e cloud.
+  \end{itemize}
+
+  \item \textbf{OUTPUT RULES:} Regole rigide che governano il comportamento:
+  \begin{itemize}
+    \item Lingua: interazione esclusivamente in italiano.
+    \item Dialogo diretto con il cliente, senza meta-commenti o ragionamento interno visibile.
+    \item Divieto di usare gergo tecnico DDD nelle domande (traduzione in scenari di business).
+    \item Stile professionale, diretto e autorevole, senza ``filler'' conversazionali.
+  \end{itemize}
+
+  \item \textbf{ANTI-BLEEDING \& BEHAVIORAL BOUNDARIES:} Vincoli critici:
+  \begin{itemize}
+    \item \textbf{Stay in your lane:} Proibizione assoluta di trattare argomenti delle fasi precedenti o successive. Ogni agente ha un elenco esplicito di topic proibiti.
+    \item \textbf{Una domanda alla volta:} Mai domande multiple nello stesso messaggio.
+    \item \textbf{No auto-chiusura:} L'agente non decide mai autonomamente di concludere la fase.
+  \end{itemize}
+
+  \item \textbf{THE DISCOVERY FLOW (Fase Specifica):} Definizione dettagliata del goal, del focus tematico e delle azioni obbligatorie specifiche per la fase. Include la \textbf{First Message Rule} per gli agenti dalla Fase~2 in poi: iniziare il primo messaggio con un breve riconoscimento della transizione dalla fase precedente.
+\end{enumerate}
+
+\section{Dettaglio per Fase}
+
+\subsection{Fase 1 --- Strategic Analysis}
+
+\textbf{Goal:} Identificare e distinguere Core, Generic e Supporting Subdomains.
+
+\textbf{Focus:} Investigare il ``Perché'' e il ``Valore''. Deve identificare esplicitamente:
+\begin{enumerate}
+  \item Cosa rende il business unico (Core Domain).
+  \item Quali parti sono standard e risolvibili con servizi esterni (Generic Subdomains).
+  \item Quali parti sono necessarie ma non uniche (Supporting Subdomains).
+\end{enumerate}
+
+\textbf{Temi proibiti:} Security, login, database, attributi specifici, UI/UX, gestione errori.
+
+\subsection{Fase 2 --- Boundaries and Language}
+
+\textbf{Goal:} Definire Bounded Contexts, identificare Aggregate Roots, dettagliare Entities con attributi specifici, formalizzare l'Ubiquitous Language.
+
+\textbf{Regola dei 2-3 Attributi:} Per ogni entità principale, l'agente \textbf{deve} estrarre o proporre almeno 2-3 attributi di stato specifici (es. status, ID, timestamp). Non procede fino alla conferma.
+
+\textbf{Temi proibiti:} Software database (MySQL, MongoDB), eventi, code, pub/sub, failure, UI/UX.
+
+\subsection{Fase 3 --- EDA Integration}
+
+\textbf{Goal:} Identificare Actors, Commands, Domain Events e il Context Mapping.
+
+\textbf{Azioni obbligatorie:}
+\begin{enumerate}
+  \item Identificare trigger e fatti con nomi di eventi in PascalCase.
+  \item Chiarire le relazioni strategiche tra Bounded Contexts (Partnership, Customer-Supplier, ACL).
+  \item Investigare la propagazione degli eventi tra contesti.
+\end{enumerate}
+
+\textbf{Temi proibiti:} Crash di sistema (Sagas), cloud server, campi dati specifici, sicurezza.
+
+\subsection{Fase 4 --- Tactical Patterns}
+
+\textbf{Goal:} Definire coordinamento, gestione dei fallimenti (Sagas), Event Sourcing, CQRS e modelli di consistenza.
+
+\textbf{Decisioni obbligatorie:}
+\begin{enumerate}
+  \item Scelta tra Orchestration e Choreography con rationale.
+  \item Definizione del ``sad path'' con meccanismi di compensazione.
+  \item Decisione esplicita su Event Sourcing (storico completo vs. solo stato corrente).
+  \item Identificazione di Read Models/Dashboard critiche.
+  \item Definizione Strong Consistency vs. Eventual Consistency per ogni area.
+\end{enumerate}
+
+\textbf{Temi proibiti:} Provider cloud, sicurezza di rete, interfacce utente, ridefinizione entità.
+
+\subsection{Fase 5 --- Technical Excellence \& Resilience}
+
+\textbf{Goal:} Raccogliere requisiti per scalabilità cloud, monitoraggio, sicurezza e integrazioni legacy.
+
+\textbf{Azioni obbligatorie:}
+\begin{enumerate}
+  \item Investigare le esigenze di scaling indipendente.
+  \item Proporre/confermare requisiti per tracing distribuito (OpenTelemetry) e logging centralizzato.
+  \item Identificare sistemi legacy e la necessità di Anticorruption Layer.
+  \item Raccogliere vincoli base su protezione dati e compliance.
+\end{enumerate}
+
+\textbf{Temi proibiti:} Tornare indietro su entità, strategia di business, workflow utente.
+
+\section{System Prompt dell'Orchestrator}
+
+L'Orchestrator (Project Controller) è l'agente critico per la qualità del materiale raccolto. A differenza degli intervistatori, non interagisce direttamente con l'utente ma agisce come un \textbf{auditor interno} che monitora la conversazione in tempo reale. Il suo prompt contiene una checklist di validazione rigorosa per ogni fase:
+
+\begin{itemize}
+  \item \textbf{Fase 1 (Strategia):} Esplicita distinzione tra Core, Generic e Supporting subdomains.
+  \item \textbf{Fase 2 (Struttura):} Definizione chiara di Bounded Contexts, Aggregate Roots e almeno 2-3 attributi specifici per ogni entità principale.
+  \item \textbf{Fase 3 (Eventi):} Identificazione di Actor, Command e Domain Event (PascalCase), oltre alle relazioni di Context Mapping.
+  \item \textbf{Fase 4 (Pattern):} Scelta tra Orchestration/Choreography, definizione dei ``sad path'' (Sagas) e modelli di consistenza.
+  \item \textbf{Fase 5 (Resilienza):} Requisiti di scaling, monitoring (OpenTelemetry), sistemi legacy e compliance.
+\end{itemize}
+
+L'Orchestrator applica un \textbf{Protocollo Comportamentale} severo: emette \texttt{WAIT} se anche un solo punto della checklist è incompleto o se l'utente ha delegato la decisione all'AI senza confermare esplicitamente. Il \texttt{PASS} viene concesso solo in presenza di un'alta profondità tecnica, garantendo che le fasi successive di generazione abbiano materiale sufficiente.
+
+\section{System Prompt del DDD Analyst}
+
+Il DDD Analyst è progettato come un \textbf{Requirement Processor} il cui compito primario è la \textbf{mappatura fedele} dell'intero storico conversazionale in un documento Markdown strutturato. Il suo prompt impone una \textbf{Zero-Loss Policy}: ogni dettaglio tecnico, vincolo o specifica citata durante l'intervista deve essere estratto e riclassificato nei pillar corrispondenti, evitando sintesi che possano causare perdita di precisione. Il risultato è un documento in italiano che serve da unica fonte di verità narrativa per l'architettura.
+
+\section{System Prompt del JSON Coder}
+
+Il JSON Coder agisce come un \textbf{Data Parser} deterministico. Il suo system prompt è ottimizzato per la \textbf{traduzione tecnica 1:1} del documento Markdown in uno schema JSON formale pronto per il consumo da parte di sistemi automatizzati. Le regole critiche includono:
+\begin{enumerate}
+  \item \textbf{Mappatura Strutturale:} Traduzione diretta delle sezioni Markdown nelle chiavi dell'oggetto JSON, mantenendo intatta la gerarchia semantica.
+  \item \textbf{Preservazione del Contenuto:} Obbligo di estrarre e incollare le frasi esatte per le descrizioni, garantendo che nessun dettaglio del DDD Analyst venga perso nel passaggio al formato macchina.
+  \item \textbf{Rigidità Sintattica:} Output esclusivamente in JSON valido, senza blocchi di codice Markdown o commenti, per facilitare il parsing programmatico nel frontend.
+\end{enumerate}
+
+\section{System Prompt degli Agenti di Refinement}
+
+Gli agenti di refinement operano esclusivamente quando il modello architetturale JSON è già disponibile in Redis, agendo con scopi diametralmente opposti: uno per l'analisi e uno per la modifica.
+
+\subsection{Modifier}
+
+Il Modifier è progettato per agire come un chirurgo tecnico. Il suo prompt impone regole di \textbf{Strict Grounding}: ogni componente citato nella richiesta dell'utente deve essere verificato nel ``JSON GOLD'' (l'architettura corrente) prima di procedere. Se la richiesta è ambigua, vaga o strutturalmente pericolosa, l'agente ha l'istruzione di non generare output tecnico, ma di rispondere in modo conversazionale per richiedere precisazioni.
+
+Quando la richiesta è valida, l'agente deve produrre esclusivamente un \textbf{Markdown Receipt} chirurgico con i seguenti campi obbligatori:
+\begin{itemize}
+  \item \textbf{Azione:} Operazione atomica (\texttt{ADD}, \texttt{MODIFY}, \texttt{DELETE}).
+  \item \textbf{Sezione Target:} Chiave root del JSON (es. \texttt{eda\_integration}).
+  \item \textbf{Path Interno:} Percorso esatto nell'albero (es. \texttt{domain\_events[0].consumed\_by}).
+  \item \textbf{Elemento:} Identificativo dell'oggetto da modificare.
+  \item \textbf{Dettagli/Payload:} Nuovi attributi o dati da iniettare nella struttura.
+\end{itemize}
+
+\subsection{Explainer}
+
+L'Explainer ha una missione puramente educativa e analitica. Il suo prompt definisce un protocollo operativo rigido in cui l'agente funge da consulente esperto che spiega le scelte architetturali basandosi solo sui fatti presenti nel JSON. 
+
+Le sue regole critiche includono:
+\begin{itemize}
+  \item \textbf{Inhibition Rule:} Divieto assoluto di produrre il formato di modifica o i relativi tag di azione. Se rileva una richiesta di cambiamento, deve cordialmente reindirizzare l'utente alla funzione ``Modifica''.
+  \item \textbf{Analisi di Logica:} In risposta a domande sul ``perché'' di una scelta, l'agente deve analizzare le interdipendenze nel JSON applicando i principi DDD (es. giustificare un confine di Bounded Context).
+  \item \textbf{Inibizione di Allucinazioni:} Se l'utente chiede informazioni su componenti non presenti nel file architetturale, l'agente deve dichiarare l'assenza del dato invece di tentare di inferirlo.
+\end{itemize}

@@ -1,0 +1,112 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Problemi, Soluzioni, Limiti e Compromessi}
+% ────────────────────────────────────────────────────────────────────────────
+
+Questo capitolo documenta le sfide tecniche incontrate durante lo sviluppo del DIM, le soluzioni adottate, i limiti intrinseci del sistema e i compromessi progettuali consapevolmente accettati.
+
+\section{Problemi Incontrati e Soluzioni}
+
+\subsection{Gestione del Contesto LLM nelle Conversazioni Multi-Fase}
+
+\textbf{Problema:} Una sessione di discovery completa può generare centinaia di messaggi attraverso cinque fasi. Se tutti i messaggi venissero inclusi nel contesto LLM degli agenti delle fasi successive, il context window sarebbe saturato rapidamente, causando degradazione della qualità delle risposte o errori di troncamento.
+
+\textbf{Soluzione:} Memory window crescente per fase (10 $\to$ 20 $\to$ 30 $\to$ 40 $\to$ 50 messaggi) tramite il nodo \texttt{memoryRedisChat} di n8n. Ogni agente vede solo una finestra di contesto calibrata sulle sue necessità. Il DDD Analyst, che necessita della visione completa, ha una finestra di 200 messaggi.
+
+\textbf{Trade-off:} Un agente di fase avanzata (es. Fase~4) potrebbe non avere accesso completo a dettagli discussi nelle primissime risposte della Fase~1, se la conversazione è stata particolarmente prolissa. In pratica, le informazioni critiche tendono ad essere ripetute e confermate nelle fasi successive, mitigando il rischio.
+
+\subsection{Latenza della Generazione del Modello}
+
+\textbf{Problema:} La catena DDD Analyst $\to$ JSON Coder con modello \texttt{qwen2.5:14b} in inferenza locale può richiedere 5-15 minuti su hardware consumer (CPU-only o GPU entry-level).
+
+\textbf{Soluzione:}
+\begin{enumerate}
+  \item \texttt{N8N\_EXECUTION\_TIMEOUT=-1} per disabilitare il timeout di n8n.
+  \item Timeout della HTTP Request interna aumentato a 30 minuti (1.800.000 ms).
+  \item Frontend con meccanismo di polling asincrono: dopo il tag \texttt{[FASE\_5\_COMPLETA]}, il frontend mostra un'animazione di attesa e interroga periodicamente il backend ogni 3 secondi fino alla disponibilità del JSON.
+\end{enumerate}
+
+\textbf{Trade-off:} L'esperienza utente durante la generazione è migliorata dall'animazione, ma il tempo di attesa rimane significativo. Un deployment su GPU dedicata (es. NVIDIA RTX 3090+) ridurrebbe la latenza di un ordine di grandezza.
+
+\subsection{Validità del JSON Generato}
+
+\textbf{Problema:} I modelli LLM, anche con temperatura 0.0, occasionalmente producono JSON non valido: virgole finali, chiavi mancanti, markdown wrapping (\texttt{```json ...```}), o troncamento per superamento del context window in output.
+
+\textbf{Soluzione:}
+\begin{enumerate}
+  \item Scelta del modello \texttt{qwen2.5:14b} specificamente per la sua superiore capacità di output strutturato.
+  \item Temperatura 0.0 per massimo determinismo.
+  \item System prompt con regole esplicite anti-wrapping (``DO NOT wrap in markdown code blocks'').
+  \item Schema JSON target fornito interamente nel system prompt come template di riferimento.
+\end{enumerate}
+
+\textbf{Limite:} Non esiste attualmente un meccanismo di validazione JSON automatica post-generazione. Se il JSON è malformato, il salvaggio in Redis fallisce silenziosamente e il frontend resta in attesa. Un possibile miglioramento sarebbe l'aggiunta di un nodo n8n di validazione JSON con retry automatico.
+
+\subsection{Anti-Bleeding tra Fasi}
+
+\textbf{Problema:} Senza vincoli espliciti, un agente LLM tende a sconfinare nel territorio degli altri agenti: l'agente di Fase~1 potrebbe iniziare a chiedere dettagli tecnici (competenza Fase~5), o l'agente di Fase~3 potrebbe proporre pattern tattici (competenza Fase~4).
+
+\textbf{Soluzione:} Ogni system prompt include una sezione ``ANTI-BLEEDING \& BEHAVIORAL BOUNDARIES'' con:
+\begin{itemize}
+  \item Elenco esplicito dei temi proibiti per quell'agente.
+  \item Regola ``STAY IN YOUR LANE'' marcata come critica.
+  \item La parola ``STRICTLY FORBIDDEN'' per enfatizzare il vincolo al modello.
+\end{itemize}
+
+\textbf{Limite:} L'efficacia dell'anti-bleeding dipende dalla capacità del modello LLM sottostante di rispettare le istruzioni negative. I modelli più piccoli (7B parametri) tendono a violare questi vincoli più frequentemente rispetto ai modelli più grandi. Llama3 8B offre un buon compromesso, ma violazioni occasionali rimangono possibili.
+
+\subsection{Evasività dell'Utente}
+
+\textbf{Problema:} Lo stakeholder potrebbe fornire risposte vaghe come ``non so, decidi tu'' o ``fa' come ti sembra meglio'', delegando decisioni di dominio all'agente LLM. Questo produrrebbe un modello architetturale basato su assunzioni dell'AI anziché sulla conoscenza reale del business.
+
+\textbf{Soluzione:} Il Project Controller include una regola esplicita nel suo system prompt: se l'utente è evasivo o delega la decisione, emette \texttt{WAIT} e l'agente della fase corrente continua a porre domande, forzando lo stakeholder a fornire informazioni concrete.
+
+\textbf{Limite:} Se l'utente persiste nell'evasività per un numero molto elevato di turni, la sessione potrebbe entrare in un loop. Attualmente non esiste un meccanismo di escalation o timeout per questa situazione.
+
+\section{Limiti del Sistema}
+
+\subsection{Limiti Strutturali}
+
+\begin{enumerate}
+  \item \textbf{Single User:} Il sistema è progettato per sessioni 1:1 (uno stakeholder alla volta per sessione). Non supporta interviste multi-stakeholder collaborative in tempo reale.
+  
+  \item \textbf{Single Language:} Gli agenti operano esclusivamente in italiano. Il supporto multilingue richiederebbe la duplicazione dei system prompt per ogni lingua target.
+  
+  \item \textbf{Schema JSON Fisso:} Lo schema di output è predefinito nel system prompt del JSON Coder. L'aggiunta di nuove sezioni (es. ``Security Patterns'') richiede la modifica manuale del prompt.
+  
+  \item \textbf{Assenza di Persistenza Long-Term:} Le chiavi Redis hanno un TTL di 24 ore. Una sessione non ripresa entro quel termine viene persa. Non esiste un meccanismo di export/import delle sessioni.
+\end{enumerate}
+
+\subsection{Limiti Legati all'Inferenza Locale}
+
+\begin{enumerate}
+  \item \textbf{Velocità:} L'inferenza locale su CPU è ordini di grandezza più lenta rispetto alle API cloud. Una singola risposta dell'agente può richiedere 10-30 secondi.
+  
+  \item \textbf{Qualità dei Modelli:} I modelli open-source da 8-14B parametri, pur essendo molto capaci, non raggiungono la qualità di modelli cloud da 70B+ parametri (GPT-4, Claude 3.5) in task complessi come la generazione di JSON strutturato o il ragionamento architetturale profondo.
+  
+  \item \textbf{Requisiti Hardware:} Ollama con \texttt{qwen2.5:14b} richiede almeno 16 GB di RAM (o GPU con 10+ GB VRAM) per operare senza swap su disco.
+\end{enumerate}
+
+\section{Compromessi Progettuali}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{3cm} L{4.5cm} L{5.5cm}}
+\toprule
+\textbf{Decisione} & \textbf{Vantaggio} & \textbf{Costo} \\
+\midrule
+Ollama locale vs. API cloud & Privacy totale, nessun costo API, funzionamento offline & Latenza elevata, qualità modelli inferiore, requisiti hardware \\
+\addlinespace
+n8n vs. codice custom & Sviluppo rapido, debug visuale, nessun codice da mantenere & Vendor lock-in su n8n, meno flessibilità per logiche complesse, overhead HTTP tra sub-workflow \\
+\addlinespace
+Frontend monolitico HTML vs. React/Vue & Zero dipendenze, zero build step, deploy immediato & Mancanza di componenti riutilizzabili, stato UI gestito con variabili globali \\
+\addlinespace
+Rete Docker unica vs. segmentazione & Semplicità, comunicazione diretta tra tutti i servizi & Nessun isolamento di rete, tutti i servizi si ``vedono'' \\
+\addlinespace
+Redis vs. database relazionale & Latenza sub-millisecondo, TTL nativo, semplicità & Nessuna query relazionale, nessuno schema enforced, rischio di perdita dati senza persistenza RDB/AOF \\
+\addlinespace
+Schema JSON fisso nel prompt & Determinismo, prevedibilità dell'output & Rigidità: ogni modifica allo schema richiede aggiornamento del prompt \\
+\bottomrule
+\end{tabularx}
+\caption{Matrice dei compromessi progettuali}
+\end{table}

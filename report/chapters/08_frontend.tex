@@ -1,0 +1,120 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Frontend Chat}
+% ────────────────────────────────────────────────────────────────────────────
+
+Il frontend è un'interfaccia web single-page (\texttt{frontend/index.html}) che consente allo stakeholder di interagire con il DIM attraverso una chat full-screen. L'intera interfaccia è contenuta in un unico file HTML con CSS e JavaScript inline, senza dipendenze esterne eccetto la libreria \texttt{marked.js} per il rendering Markdown.
+
+% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
+\begin{warningbox}{Suggerimento: Immagine}
+\textit{Inserire qui uno screenshot dell'interfaccia chat in funzione, mostrando: (1) l'header con il pulsante ``Nuova Chat'', (2) l'area messaggi con bolle utente e agente, (3) l'area di input a destra. Idealmente catturare un momento durante l'intervista con almeno 2-3 scambi di messaggi.}
+\end{warningbox}
+
+\section{Layout e Design}
+
+L'interfaccia adotta un layout orizzontale split-view:
+\begin{itemize}
+  \item \textbf{Lato sinistro (70\%):} Area dei messaggi (\texttt{\#chat-history}) con scrolling verticale, bolle di chat differenziate per colore (blu per l'utente, grigio per l'agente).
+  \item \textbf{Lato destro (30\%):} Area di input con textarea multi-linea e pulsante ``Invia''.
+  \item \textbf{Header:} Barra superiore blu con titolo ``Intervista DDD'' e pulsante ``Nuova Chat'' per il reset della sessione.
+\end{itemize}
+
+
+\section{Gestione delle Sessioni}
+
+Ogni sessione è identificata da un \texttt{sessionId} univoco generato lato client:
+
+\begin{lstlisting}[language=Java]
+let sessionId = localStorage.getItem('chat_session_id');
+if (!sessionId) {
+    sessionId = 'sess_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chat_session_id', sessionId);
+}
+\end{lstlisting}
+
+Il \texttt{sessionId} è persistito in \texttt{localStorage}, garantendo la continuità della sessione anche dopo il refresh della pagina. Il pulsante ``Nuova Chat'' rimuove la chiave e ricarica la pagina, generando un nuovo ID.
+
+\section{Rendering Differenziato dei Messaggi}
+
+Il frontend distingue tre tipologie di contenuto per i messaggi dell'agente, ciascuna con un rendering dedicato:
+
+\begin{itemize}
+  \item \textbf{Messaggi Testuali:} Bolle di chat standard con label ``Agente DDD''.
+  \item \textbf{Blocchi JSON Architetturali:} Visualizzazione stile terminale con formattazione pretty-print e pulsante ``Copia JSON''.
+  \item \textbf{Blocchi Markdown:} Documenti architetturali renderizzati in HTML tramite \texttt{marked.js}, con label differenziata (``Documento Architetturale'' per il modello finale, ``Agente Modifier'' per le bozze di modifica).
+\end{itemize}
+
+\section{Feedback Visuale e Animazioni}
+
+Il frontend implementa diverse animazioni per fornire feedback all'utente durante le operazioni asincrone:
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{3.5cm} L{3cm} L{6.5cm}}
+\toprule
+\textbf{Contesto} & \textbf{Animazione} & \textbf{Descrizione} \\
+\midrule
+Discovery / Explain & Typing indicator & Tre puntini blu che rimbalzano (bounce animation) \\
+Generazione modello & Slide right-to-left & Testo ``Generazione architettura in corso...'' blu che scorre \\
+Modifica & Slide left-to-right & Testo ``Analizzando la richiesta...'' arancione che scorre \\
+\bottomrule
+\end{tabularx}
+\caption{Animazioni di feedback nel frontend}
+\end{table}
+
+\section{Pulsanti Inline e Selezione Modalità}
+
+Dopo la generazione del modello architetturale, il frontend presenta due pulsanti inline nell'area chat:
+
+\begin{itemize}
+  \item \textbf{``Chiedi Spiegazione'':} Attiva la modalità \texttt{explain}. L'area di input viene sbloccata con placeholder ``Scrivi la tua domanda...''.
+  \item \textbf{``Richiedi Modifica'':} Attiva la modalità \texttt{modify}. L'area di input viene sbloccata con placeholder ``Descrivi la modifica strutturale che desideri...''.
+\end{itemize}
+
+Durante la visualizzazione dei pulsanti, l'area di input è \textbf{bloccata} con il messaggio ``Seleziona un'azione dalla chat prima di scrivere...'', forzando l'utente a una scelta esplicita.
+
+\section{Meccanismo di Draft con Double-Check}
+
+Quando l'utente riceve una bozza di modifica (modalità Modify), il frontend mostra pulsanti ``Conferma Modifica'' (verde) e ``Rifiuta Modifica'' (rosso). Al click:
+
+\begin{enumerate}
+  \item I pulsanti originali vengono nascosti.
+  \item Appare un messaggio di conferma contestuale:
+  \begin{itemize}
+    \item Per la conferma: ``Sei sicuro che vuoi che questa sia la modifica che vuoi?''
+    \item Per il rifiuto: Un messaggio più lungo che avverte della perdita della proposta.
+  \end{itemize}
+  \item Pulsanti ``Sì'' / ``No'' per la conferma finale.
+  \item Il ``No'' ripristina i pulsanti originali; il ``Sì'' invia la decisione al Draft Decision Workflow.
+\end{enumerate}
+
+Questo meccanismo a doppia conferma previene click accidentali che potrebbero sovrascrivere l'architettura corrente.
+
+\section{Comunicazione con il Backend}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{3cm} C{1.3cm} X L{4cm}}
+\toprule
+\textbf{Azione} & \textbf{Metodo} & \textbf{Endpoint} & \textbf{Payload} \\
+\midrule
+Invio messaggio & POST & \texttt{/webhook/chat-locale} & \texttt{message, \allowbreak sessionId, \allowbreak action} \\
+Polling modello & GET & \texttt{/webhook/check-status-locale} & \texttt{sessionId} (query param) \\
+Draft Decision & POST & \texttt{/webhook/draft-decision-locale} & \texttt{sessionId, \allowbreak action} \\
+\bottomrule
+\end{tabularx}
+\caption{Endpoint di comunicazione Frontend $\to$ n8n}
+\end{table}
+
+Il polling viene avviato automaticamente quando il frontend riceve dal server una risposta con \texttt{status: generating}. Questo avviene immediatamente dopo che l'Orchestrator, al termine della conversazione in Fase~5, emette un verdetto di \textbf{PASS}, autorizzando l'avvio della catena di generazione asincrona. L'intervallo di interrogazione è impostato a 3 secondi.
+
+\section{Gestione degli Errori}
+
+Il frontend gestisce gli errori a più livelli:
+\begin{itemize}
+  \item \textbf{Errore di rete:} Messaggio ``Errore di comunicazione con il server.'' nella chat.
+  \item \textbf{Risposta vuota o 500:} Messaggio ``Il server ha risposto con un errore (500) o un contenuto vuoto. Controlla i workflow su n8n.''.
+  \item \textbf{Fallimento modifica:} Se il Draft Decision restituisce \texttt{status: failed}, il frontend mostra ``Ops! I controlli di sicurezza interni hanno bloccato questa modifica.''.
+  \item In tutti i casi di errore, l'input viene ri-abilitato per permettere all'utente di riprovare.
+\end{itemize}

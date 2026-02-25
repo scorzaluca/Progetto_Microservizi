@@ -1,0 +1,60 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Conclusioni e Sviluppi Futuri}
+% ────────────────────────────────────────────────────────────────────────────
+
+\section{Sintesi dei Risultati}
+
+Il Domain Interviewer \& Modeler dimostra la fattibilità di un approccio completamente automatizzato alla scoperta del dominio e alla progettazione architetturale DDD tramite agenti LLM specializzati. I risultati principali possono essere sintetizzati nei seguenti punti:
+
+\begin{enumerate}
+  \item \textbf{Pipeline Multi-Agente Funzionante:} Cinque agenti intervistatori specializzati, un Project Controller di validazione e una catena di generazione (DDD Analyst + JSON Coder) cooperano per trasformare una conversazione in linguaggio naturale in un modello architetturale JSON strutturato e machine-readable.
+
+  \item \textbf{System Prompt Engineering Efficace:} La struttura a quattro sezioni (Role, Output Rules, Anti-Bleeding, Discovery Flow) con vincoli di inibizione espliciti si è dimostrata efficace nel mantenere gli agenti focalizzati sul proprio ambito tematico, riducendo significativamente il fenomeno di bleeding tra fasi.
+
+  \item \textbf{Orchestrazione Senza Codice Custom:} L'intera logica applicativa --- routing, branching condizionale, invocazione LLM, gestione stato, validazione --- è implementata come workflow n8n, senza una singola riga di codice backend tradizionale. Questo approccio ha accelerato lo sviluppo e facilitato il debugging grazie alla visibilità nativa dell'engine di workflow.
+
+  \item \textbf{Privacy-by-Design Praticabile:} L'inferenza locale tramite Ollama, pur con i compromessi di latenza documentati nel Capitolo~11, dimostra che un sistema di discovery architetturale può operare in totale autonomia senza dipendenze cloud, rendendo il DIM adatto a contesti con vincoli di riservatezza.
+
+  \item \textbf{Raffinamento Interattivo Sicuro:} Il meccanismo di Draft/Confirm/Discard con double-check previene efficacemente le modifiche involontarie al modello architetturale, un requisito critico in un contesto in cui il modello di dominio è l'artefatto centrale della pipeline.
+\end{enumerate}
+
+\section{Sviluppi Futuri}
+
+\subsection{Evoluzione dello Stack di Osservabilità}
+
+Lo stack attuale (OpenTelemetry Collector, Loki, Tempo, Prometheus, Grafana) è operativo ma può essere esteso con:
+\begin{itemize}
+  \item Dashboard Grafana personalizzate per il monitoraggio delle sessioni di discovery (latenza per fase, token consumati, tasso di successo della generazione JSON).
+  \item Regole di alerting per anomalie (es. generazione JSON fallita, latenza superiore a soglia).
+  \item Metriche custom esposte da n8n per l'analisi delle performance degli agenti.
+\end{itemize}
+
+\subsection{Validazione Automatica del JSON}
+
+L'aggiunta di un nodo n8n di validazione post-generazione che verifica la conformità del JSON allo schema target, con meccanismo di retry automatico in caso di output malformato, migliorerebbe significativamente la robustezza della pipeline.
+
+\subsection{Supporto Multi-Lingua}
+
+L'estensione dei system prompt per supportare sessioni in lingue diverse dall'italiano (inglese, spagnolo, tedesco) amplierebbe l'applicabilità del DIM a contesti internazionali.
+
+\subsection{Integrazione con il Pipeline Multi-Agente}
+
+Il DIM è il primo agente di una pipeline più ampia. Gli sviluppi futuri prevedono l'integrazione con gli agenti downstream che consumano il JSON architetturale per:
+\begin{itemize}
+  \item Generazione automatica di diagrammi UML/C4 dai Bounded Context.
+  \item Scaffolding del codice sorgente dei microservizi basato sul modello di dominio.
+  \item Generazione di test di contratto (Contract Testing) basati sugli eventi DDD.
+\end{itemize}
+
+\subsection{Persistenza Long-Term e Versioning}
+
+L'implementazione di un meccanismo di export/import delle sessioni (es. salvataggio su filesystem o database documentale) e di versioning del modello architetturale (storico delle modifiche con diff) consentirebbe la gestione di progetti di discovery complessi e multi-seduta.
+
+\subsection{Miglioramenti al Frontend}
+
+\begin{itemize}
+  \item Visualizzazione grafica del JSON architetturale (tree view interattiva, diagramma dei Bounded Context).
+  \item Progress bar della fase di discovery (indicatore visuale della fase corrente su 5).
+  \item Supporto al dark mode.
+  \item Export del modello in formati alternativi (YAML, PlantUML, Mermaid).
+\end{itemize}

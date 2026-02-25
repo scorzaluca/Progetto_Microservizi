@@ -1,0 +1,17 @@
+\babel@toc {italian}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {10.1}{\ignorespaces Architettura dello stack di osservabilità: OTel Collector $\to $ Loki / Prometheus $\to $ Grafana}}{36}{figure.caption.12}%
+\contentsline {figure}{\numberline {10.2}{\ignorespaces Dashboard Grafana --- Visualizzazione log aggregati da Loki}}{38}{figure.caption.16}%
+\contentsline {figure}{\numberline {10.3}{\ignorespaces Dashboard Grafana --- Visualizzazione metriche da Prometheus}}{38}{figure.caption.17}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsfinish 

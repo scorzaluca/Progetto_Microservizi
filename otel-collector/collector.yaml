@@ -28,7 +28,7 @@ receivers:
         config:
           include:
             - /var/lib/docker/containers/`container_id`/`container_id`-json.log
-          start_at: end
+          start_at: beginning
           include_file_path: true
           operators:
             # I Docker log JSON tipo {"log":"...","stream":"stdout","time":"..."}
@@ -77,13 +77,6 @@ receivers:
           relabel_configs:
             - target_label: container_name
               replacement: n8n
-
-  # Docker Stats: raccoglie metriche di risorse (CPU, RAM, Rete) da tutti i container
-  docker_stats:
-    endpoint: unix:///var/run/docker.sock
-    api_version: "1.45"
-    collection_interval: 15s
-    timeout: 10s
 
 processors:
   # Batch: raggruppa i record per efficienza di rete
@@ -146,8 +139,8 @@ service:
       processors: [groupbyattrs, transform, resource, batch]
       exporters: [otlphttp/loki, debug]
 
-    # Metriche: da Redis Exporter + n8n + Ollama (scraping) + Docker Stats (risorse)
+    # Metriche: da Redis Exporter + n8n + Ollama (scraping) 
     metrics:
-      receivers: [otlp, prometheus, docker_stats]
+      receivers: [otlp, prometheus]
       processors: [resource, batch]
       exporters: [prometheusremotewrite, debug]

@@ -1,0 +1,102 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Stakeholder e Ruoli}
+% ────────────────────────────────────────────────────────────────────────────
+
+Il presente capitolo identifica gli attori, umani e sistemici, che interagiscono nel sistema. Per ogni stakeholder vengono definiti il perimetro di responsabilità, le modalità di interazione con il sistema e i vincoli operativi.
+
+\section{Business Stakeholder (Utente Intervistato)}
+
+\textbf{Ruolo:} Rappresentante del business che partecipa all'intervista di scoperta del dominio. È la fonte primaria delle informazioni sul contesto aziendale, i processi, le entità e le regole di business.
+
+\textbf{Responsabilità:}
+\begin{itemize}
+  \item Rispondere alle domande degli agenti intervistatori con dettaglio tecnico sufficiente.
+  \item Fornire conferme esplicite quando richieste dall'agente (l'Orchestrator emette \texttt{WAIT} su risposte evasive come ``decidi tu'').
+  \item Validare, confermare o rifiutare il modello architetturale generato attraverso il flusso di Refinement.
+\end{itemize}
+
+\textbf{Interfaccia:} Chat web (\texttt{frontend/index.html}) su browser, comunicazione asincrona via webhook n8n sulla porta 5678.
+
+\section{Agenti Intervistatori (Discovery Pipeline)}
+
+Il sistema impiega cinque agenti specializzati, ciascuno responsabile di una fase distinta dell'intervista DDD. Ogni agente opera con regole comportamentali rigide di \textit{separazione delle competenze}: è strettamente proibito uscire dal proprio ambito tematico.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{L{3.5cm} C{1cm} L{4cm} L{5cm}}
+\toprule
+\textbf{Agente} & \textbf{Fase} & \textbf{Ruolo DDD} & \textbf{Focus Tematico} \\
+\midrule
+Domain Interviewer    & 1 & Senior Strategic Architect & Core, Generic e Supporting Subdomains \\
+Context Interviewer   & 2 & Senior Structural Architect & Bounded Contexts, Aggregate Roots, Entities, Ubiquitous Language \\
+Event Interviewer     & 3 & Senior Event-Driven Architect & Actors, Commands, Domain Events, Context Mapping \\
+Pattern Interviewer   & 4 & Senior Tactical Architect & Choreography/Orchestration, Sagas, CQRS, Event Sourcing \\
+Resilience Interviewer & 5 & Senior Infrastructure Architect & Cloud Scalability, ACL, Monitoring, Security \\
+\bottomrule
+\end{tabularx}
+\caption{Agenti Intervistatori e relative fasi dell'intervista DDD}
+\end{table}
+
+\subsection{Regole Comuni agli Agenti Intervistatori}
+
+Tutti gli agenti condividono un insieme di vincoli comportamentali definiti nei rispettivi system prompt:
+
+\begin{itemize}
+  \item \textbf{Lingua:} Interazione esclusivamente in italiano.
+  \item \textbf{Una domanda alla volta:} Progressione sequenziale, mai domande multiple.
+  \item \textbf{Drill-down obbligatorio:} Approfondimento automatico su risposte vaghe o generiche.
+  \item \textbf{Divieto di gergo DDD:} Traduzione dei concetti architetturali in scenari di business comprensibili.
+  \item \textbf{Isolamento tematico:} Proibizione assoluta di sconfinare nelle fasi degli altri agenti.
+  \item \textbf{No auto-chiusura:} L'agente non decide mai autonomamente di concludere la fase; il sistema lo ferma automaticamente.
+\end{itemize}
+
+\section{Agente di Validazione (Orchestrator)}
+
+\textbf{Ruolo:} \textit{Senior Project Controller and Architectural Auditor}. 
+
+\textbf{Responsabilità:} Monitorare il livello di dettaglio della conversazione al termine di ogni scambio di messaggi e determinare se le informazioni raccolte sono sufficienti per procedere di fase. L'output è binario:
+\begin{itemize}
+  \item \texttt{PASS}: Tutti i requisiti della fase corrente sono esplicitamente confermati dall'utente.
+  \item \texttt{WAIT}: Informazioni mancanti, vaghe o con profondità tecnica insufficiente.
+\end{itemize}
+
+L'Orchestrator opera con una checklist di validazione per fase, verificando ad esempio che nella Fase~2 ogni entità principale abbia almeno 2--3 attributi specifici, o che nella Fase~4 sia stata fatta una scelta esplicita tra Choreography e Orchestration.
+
+\section{Agenti di Elaborazione (Post-Discovery)}
+
+\textbf{DDD Analyst:} Analizza l'intero storico conversazionale e produce il documento architetturale Markdown strutturato secondo i cinque pilastri DDD, con politica Zero-Loss.(modello \texttt{qwen2.5:14b})
+
+\textbf{JSON Coder:} Converte il documento Markdown in un JSON formale con schema predefinito (modello \texttt{qwen2.5:14b}, temperatura 0.0 per massima determinismo), preservando ogni dettaglio senza riassumere.
+
+\textbf{Modifier (Refinement):} Analizza le richieste di modifica dell'utente, verifica l'esistenza dei componenti nel modello architetturale corrente, e produce un receipt strutturato con l'azione da intraprendere (ADD, MODIFY, DELETE).
+
+\textbf{Explainer (Refinement):} Risponde a domande di chiarimento sull'architettura corrente, basandosi esclusivamente sul JSON in Redis. È strettamente inibito dal suggerire o implementare modifiche.
+
+\section{Stack di Osservabilità}
+
+\textbf{Ruolo:} Insieme di strumenti tecnici preposti al monitoraggio e alla telemetria del sistema.
+
+\textbf{Responsabilità:} Raccolta, elaborazione e visualizzazione di log, tracce distribuite e metriche da tutti i componenti containerizzati dell'ecosistema DIM.
+
+\section{Matrice di Tracciabilità Ruoli/Funzioni}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{2.8cm} C{1.5cm} C{1.5cm} C{1.5cm} C{1.5cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{\makecell{Ruolo/\\Stakeholder}} & \textbf{Disc.} & \textbf{Valid.} & \textbf{Gener.} & \textbf{Refin.} & \textbf{Draft} & \textbf{Osserv.} \\
+\midrule
+Stakeholder & Risponde & No & No & Modifica & \makecell{Conf./\\Rif.} & No \\
+Interviewers & Intervista & No & No & No & No & No \\
+Controller & No & Valida & No & No & No & No \\
+DDD Analyst & No & No & Genera MD & No & No & No \\
+JSON Coder & No & No & Genera JSON & No & No & No \\
+Modifier & No & No & No & Modifica & No & No \\
+Explainer & No & No & No & Spiega & No & No \\
+\makecell[l]{Stack\\Osservabilità} & No & No & No & No & No & Monitora \\
+\bottomrule
+\end{tabularx}
+\caption{Matrice di tracciabilità Ruoli/Funzioni del sistema}
+\end{table}

@@ -1,0 +1,123 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Osservabilità}
+% ────────────────────────────────────────────────────────────────────────────
+
+L'osservabilità è un pilastro architetturale del DIM, garantendo visibilità sull'esecuzione dei workflow e sulle performance del sistema. Il sistema implementa i due pilastri fondamentali --- Log e Metriche --- attraverso una pipeline centralizzata basata su OpenTelemetry Collector.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{img/observability.png}
+\caption{Architettura dello stack di osservabilità: OTel Collector $\to$ Loki / Prometheus $\to$ Grafana}
+\label{fig:osservabilita}
+\end{figure}
+
+\section{OpenTelemetry Collector: L'Hub Centrale}
+
+L'OpenTelemetry Collector (versione Contrib 0.133.0) raccoglie, processa e instrada i segnali di telemetria verso i backend appropriati.
+
+\subsection{Receivers (Sorgenti Dati)}
+
+Il Collector è configurato con i seguenti receiver:
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{3.5cm} L{2.5cm} L{7cm}}
+\toprule
+\textbf{Receiver} & \textbf{Tipo Segnale} & \textbf{Funzione} \\
+\midrule
+otlp (HTTP/gRPC) & Log, Metriche & Riceve telemetria nativa strutturata sulle porte 4318 (HTTP) e 4317 (gRPC). \\
+receiver\_creator\newline con filelog & Log & Scopre i container Docker tramite \texttt{docker\_observer} e raccoglie i log (escluso otel-collector per evitare feedback loop). \\
+prometheus (scrape) & Metriche & Fa scraping di \texttt{redis-exporter:9121/metrics} e \texttt{n8n:5678/metrics} (per metriche di workflow e host aggiuntive). \\
+\bottomrule
+\end{tabularx}
+\caption{Receivers configurati nell'OpenTelemetry Collector}
+\end{table}
+
+\subsection{Processors (Elaborazione)}
+
+\begin{itemize}
+  \item \textbf{batch:} Raggruppa i segnali in batch per ottimizzare le operazioni di rete verso i backend.
+  \item \textbf{resource:} Arricchisce i dati con attributi aggiuntivi, in particolare aggiunge l'attributo \texttt{service.name} derivato dal nome del container Docker (\texttt{container.name}) per identificare univocamente la sorgente di ogni segnale in Grafana.
+\end{itemize}
+
+\subsection{Exporters (Destinazioni)}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{4cm} L{3cm} L{6cm}}
+\toprule
+\textbf{Exporter} & \textbf{Backend} & \textbf{Configurazione} \\
+\midrule
+loki           & Loki (3100) & Esporta log con attributi di risorsa come label Loki \\
+prometheus\newline remotewrite & Prometheus (9090) & Esporta metriche via Remote Write \\
+\bottomrule
+\end{tabularx}
+\caption{Exporters configurati nell'OpenTelemetry Collector}
+\end{table}
+
+\begin{technicalbox}{Dettaglio Tecnico: receiver\_creator e n8n logging}
+L'extension \texttt{docker\_observer} si connette al Docker socket e monitora i container. Il \texttt{receiver\_creator} istanzia un receiver \texttt{filelog} per ogni container. Per ottimizzare il sistema, è stata definita una regola di esclusione: il container \texttt{n8n} viene ignorato dal \texttt{filelog} receiver poiché invia già i propri log in formato strutturato (arricchiti da metadati dei workflow) tramite protocollo OTLP nativo al Collector. Questo garantisce log di alta qualità senza duplicazioni.
+\end{technicalbox}
+
+\section{Loki: Aggregazione Log}
+
+Grafana Loki (v3.5.0) è il backend di log aggregation. Configurato in modalità single-instance per sviluppo locale, riceve i log dall'OTel Collector e li rende interrogabili tramite LogQL in Grafana.
+
+\textbf{Configurazione chiave:}
+\begin{itemize}
+  \item Storage su filesystem locale (\texttt{/loki/chunks}) con retention di 744 ore (31 giorni).
+  \item Limite di ingestione configurato per gestire log di grandi dimensioni (10MB per messaggio gRPC).
+  \item Autenticazione disabilitata per ambiente di sviluppo locale.
+\end{itemize}
+
+\section{Prometheus: Metriche}
+
+Prometheus (v2.53.0) è il backend per le metriche. Non esegue scraping diretto dei target: le metriche arrivano esclusivamente tramite Remote Write (push) dall'OTel Collector.
+
+Per quanto riguarda \textbf{n8n}, la raccolta delle metriche avviene tramite un approccio duale e complementare:
+\begin{itemize}
+  \item \textbf{OTLP Nativo:} il Collector riceve le metriche di base via protocollo strutturato nativo OTLP direttamente da n8n.
+  \item \textbf{Scraping /metrics:} in aggiunta, il Collector esegue lo \textit{scraping} attivo dell'endpoint HTTP nativo \texttt{/metrics} sulla porta 5678 di n8n. Questo secondo metodo è fondamentale perché fornisce \textbf{metriche aggiuntive decisamente migliori sul motore di esecuzione interno} (come, ad esempio, i workflow attivi, in esecuzione, il lag dell'event loop o i dettagli completi su memoria/RSS), non esposte sufficientemente dal pacchetto OTLP di base.
+\end{itemize}
+Il Collector esegue anche lo scraping del \texttt{redis-exporter}.
+
+\textbf{Metriche disponibili in Grafana:}
+\begin{itemize}
+  \item \textbf{Redis} (via redis-exporter): connessioni attive, memoria utilizzata, operazioni al secondo, chiavi per database, hit rate.
+  \item \textbf{n8n} (via \texttt{/metrics} combinato all'OTLP): numero dei workflow attivi (\texttt{n8n\_active\_workflow\_count}), utilizzo heap NODE (\texttt{n8n\_nodejs\_heap\_size\_used\_bytes}), tempo di lag dell'event loop, metriche generali del processo OS.
+\end{itemize}
+
+\section{Grafana: Visualizzazione e Dashboard}
+
+Grafana (v12.2) è il frontend di visualizzazione, preconfigurato tramite provisioning automatico con due datasource:
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{L{2.3cm} L{3.2cm} C{1.5cm} L{6cm}}
+\toprule
+\textbf{Datasource} & \textbf{Backend} & \textbf{Default} & \textbf{Funzionalità} \\
+\midrule
+Loki       & \texttt{loki:3100}       & Sì & Visualizzazione log centralizzati \\
+Prometheus & \texttt{prometheus:9090}  & No & PromQL per metriche Redis e n8n \\
+\bottomrule
+\end{tabularx}
+\caption{Datasource Grafana preconfigurati}
+\end{table}
+
+% --- Placeholder per immagini dashboard Grafana ---
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{2.5cm}\textit{Inserire qui screenshot della dashboard Grafana con log Loki}\vspace{2.5cm}}}
+\caption{Dashboard Grafana --- Visualizzazione log aggregati da Loki}
+\label{fig:grafana_log}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.9\textwidth}{\centering\vspace{2.5cm}\textit{Inserire qui screenshot della dashboard Grafana con metriche Prometheus}\vspace{2.5cm}}}
+\caption{Dashboard Grafana --- Visualizzazione metriche da Prometheus}
+\label{fig:grafana_prometheus}
+\end{figure}

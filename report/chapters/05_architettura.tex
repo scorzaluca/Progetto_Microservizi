@@ -1,0 +1,97 @@
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Architettura del Sistema}
+% ────────────────────────────────────────────────────────────────────────────
+
+% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
+\begin{warningbox}{Suggerimento: Immagine}
+\textit{Inserire qui un diagramma architetturale completo del sistema (simile ad un C4 Context/Container Diagram) che mostri tutti i microservizi, le rete Docker, i flussi di comunicazione e lo stack di osservabilità. Questo è il diagramma più importante dell'intero report.}
+\end{warningbox}
+
+Questo capitolo descrive l'architettura logica e fisica del Domain Interviewer \& Modeler, illustrando come i moduli cooperano per garantire un servizio di domain discovery scalabile, modulare e osservabile.
+
+\section{Visione d'Insieme}
+
+Il DIM è un ecosistema modulare basato su microservizi containerizzati in cui ogni componente ha un compito preciso e delimitato. L'architettura segue il principio della \textbf{separazione delle responsabilità} (Separation of Concerns) a livello di container:
+
+\begin{itemize}
+  \item \textbf{L'Orchestratore (n8n):} Motore di workflow automation che coordina l'intera pipeline. Gestisce i webhook HTTP, il routing dei messaggi, l'invocazione degli agenti LLM e la lettura/scrittura dello stato in Redis. Nessuna logica applicativa è implementata come codice custom: tutto è espresso come workflow visuale.
+
+  \item \textbf{Lo Stato Conversazionale (Redis):} Key-value store ad alte prestazioni che mantiene lo stato persistente delle sessioni: fase corrente, storico chat, JSON architetturali generati, bozze in attesa di conferma.
+
+  \item \textbf{Il Cervello (Ollama):} Runtime LLM locale che esegue i modelli di linguaggio per tutte le operazioni di ragionamento semantico. Due modelli sono impiegati, ciascuno con temperatura calibrata sul compito:
+  \begin{itemize}
+    \item \texttt{llama3:latest} --- modello conversazionale impiegato per gli agenti che interagiscono direttamente con l'utente o ne valutano le risposte: Interviewer (temp.~0.4), Orchestrator (temp.~0.0), Modifier (temp.~0.1) ed Explainer (temp.~0.4).
+    \item \texttt{qwen2.5:14b} --- modello ad alta precisione strutturale, impiegato dove è richiesta la generazione di output formali: DDD Analyst per la sintesi del documento architetturale (temp.~0.3) e JSON Coder per la traduzione in JSON con schema predefinito (temp.~0.0).
+  \end{itemize}
+
+  \item \textbf{L'Interfaccia (Frontend HTML):} Chat web full-screen single-page che consente allo stakeholder di interagire in linguaggio naturale, con rendering differenziato per testo, JSON e Markdown architetturale.
+
+  \item \textbf{Il Supervisore (Stack Osservabilità):} Pipeline OpenTelemetry Collector $\to$ Loki/Tempo/Prometheus $\to$ Grafana che raccoglie log, tracce distribuite e metriche da tutti i container.
+\end{itemize}
+
+
+
+\section{I Pilastri Progettuali}
+
+Per garantire un sistema affidabile e manutenibile, sono stati seguiti quattro principi architetturali fondamentali:
+
+\subsection{Orchestrazione via Workflow (n8n)}
+
+Tutta la logica applicativa è espressa come workflow n8n, non come codice custom. Questo approccio offre:
+\begin{itemize}
+  \item \textbf{Visibilità totale:} Ogni esecuzione è tracciabile nella UI di n8n con input/output di ogni nodo.
+  \item \textbf{Facilità di debug:} Modifica e test senza ricompilazione, con esecuzione step-by-step.
+  \item \textbf{Natività nell'integrazione:} Nodi built-in per Redis, HTTP, LLM, Switch, Sub-Workflow.
+  \item \textbf{Riproducibilità:} I workflow sono esportabili come JSON e versionabili in Git.
+\end{itemize}
+
+\subsection{State Management Centralizzato (Redis)}
+
+Ogni informazione di stato --- fase di discovery, storico chat, JSON generati, bozze --- è persistita in Redis con chiavi strutturate per \texttt{sessionId}. Questo disaccoppia completamente lo stato applicativo dalla logica di esecuzione: l'orchestratore non mantiene alcun dato di sessione in memoria, ogni invocazione del workflow è autocontenuta, e la ripresa di sessioni interrotte è garantita senza perdita di contesto.
+
+\subsection{Agenti Specializzati con System Prompt}
+
+Ogni agente LLM del sistema --- intervistatori, orchestratore, agenti di elaborazione e agenti di refinement --- opera con un system prompt ingegnerizzato che ne definisce il comportamento in modo deterministico. Tutti i prompt condividono una struttura comune articolata in:
+\begin{itemize}
+  \item \textbf{Ruolo e Persona:} Identità professionale specifica che orienta il tono e la profondità delle risposte (es. ``Senior Strategic Architect'', ``Senior Project Controller'', ``Data Parser'').
+  \item \textbf{Lingua e Stile:} Output esclusivamente in italiano, tono professionale e diretto, traduzione del gergo tecnico DDD in scenari di business comprensibili.
+  \item \textbf{Formato di Output:} Vincoli rigidi sul formato della risposta, variabili per agente: una domanda alla volta per gli intervistatori, verdetto binario per l'orchestratore, Markdown strutturato per il DDD Analyst, JSON puro per il JSON Coder, receipt di modifica per il Modifier.
+  \item \textbf{Confini Comportamentali:} Regole di inibizione che impediscono all'agente di uscire dal proprio perimetro. Gli intervistatori non possono sconfinare nelle fasi altrui (isolamento tematico); l'Explainer non può suggerire modifiche; il Modifier deve verificare l'esistenza dei componenti prima di proporre cambiamenti.
+  \item \textbf{Grounding sui Dati:} Ogni agente opera esclusivamente sulle informazioni a cui ha accesso (storico conversazionale per gli intervistatori, JSON architetturale per Explainer e Modifier), senza inventare o generalizzare informazioni non presenti.
+\end{itemize}
+
+\subsection{Osservabilità Nativa}
+
+L'osservabilità non è un add-on ma un componente strutturale dell'architettura. Il servizio n8n emette telemetria nativa OTLP verso l'OTel Collector, che la instrada verso Loki (log), Tempo (tracce) e Prometheus (metriche). Grafana è preconfigurato con datasource e correlation per navigare tra i tre segnali.
+
+\section{Motivazioni delle scelte architetturali}
+
+\begin{technicalbox}{Dettaglio Tecnico: Motivazioni delle Scelte Architetturali}
+\textbf{n8n vs. codice custom:} Scelto per la capacità di definire workflow complessi con nodi condizionali (Switch), invocazione di sub-workflow (\texttt{executeWorkflow}), integrazione nativa con LLM (nodi \texttt{lmChatOllama} e \texttt{agent}), e gestione della memoria conversazionale tramite nodi \texttt{memoryRedisChat}. La UI visuale accelera drasticamente il ciclo di sviluppo e debugging.
+
+\textbf{Redis vs. database relazionale:} Scelto per la bassa latenza, l'integrazione nativa con i nodi n8n, e la semplicità del modello key-value che rispecchia la struttura piatta dello stato conversazionale.
+
+\textbf{Ollama vs. API cloud (OpenAI, Anthropic):} Scelto per garantire privacy totale dei dati di dominio. In un contesto enterprise, le informazioni sulla struttura del business e i processi interni sono altamente confidenziali. L'inferenza locale garantisce che nessun dato di dominio venga trasmesso a servizi esterni, preservando la riservatezza delle informazioni aziendali.
+
+\textbf{Modelli LLM --- llama3 e qwen2.5:14b:} \texttt{llama3} è impiegato per tutti gli agenti conversazionali (intervistatori, orchestratore, Modifier, Explainer) dove fluency e capacità di interazione sono prioritarie. \texttt{qwen2.5:14b} è riservato agli agenti di elaborazione post-intervista --- DDD Analyst e JSON Coder --- che richiedono alta precisione nella generazione di output strutturati (documento Markdown e JSON formale).
+\end{technicalbox}
+
+\section{Flusso di Comunicazione End-to-End}
+
+Il flusso di una sessione completa segue questo percorso, dal primo messaggio dell'utente fino al raffinamento del modello:
+
+\begin{enumerate}
+  \item L'utente accede al frontend, che genera o recupera un identificatore di sessione univoco.
+  \item Ogni messaggio viene inviato al Routing Workflow, che determina se instradarlo verso il flusso di Discovery o di Refinement in base alla presenza o assenza del modello architetturale.
+  \item \textbf{Discovery:} Il messaggio viene inoltrato all'agente intervistatore della fase corrente. Dopo ogni risposta, l'Orchestrator valuta la completezza delle informazioni raccolte e, se soddisfatto, autorizza la transizione alla fase successiva.
+  \item \textbf{Generazione:} Al completamento della quinta fase, il sistema avvia la catena di generazione automatica: il documento architetturale Markdown viene prodotto e successivamente tradotto in un JSON formale con schema predefinito.
+  \item \textbf{Polling:} Il frontend rileva l'avvio della generazione e interroga periodicamente il backend fino alla disponibilità del modello.
+  \item \textbf{Refinement:} Una volta disponibile il modello, l'utente può scegliere tra modalità Spiegazione e modalità Modifica. Le modifiche producono una bozza che richiede conferma esplicita prima di essere applicata.
+\end{enumerate}
+
+I dettagli implementativi di ogni componente --- webhook, routing, transizioni di fase, polling e gestione delle bozze --- sono approfonditi nei Capitoli~7 e~8.
+
+% ── NOTA IMMAGINE ────────────────────────────────────────────────────────────
+\begin{warningbox}{Suggerimento: Immagine}
+\textit{Inserire qui un diagramma di sequenza (sequence diagram) che illustri il flusso completo descritto sopra: Frontend $\to$ Routing $\to$ Discovery $\to$ Generazione $\to$ Refinement. Evidenziare il ruolo dell'Orchestrator nella validazione e la catena di generazione post-Fase~5.}
+\end{warningbox}
